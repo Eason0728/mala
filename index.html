@@ -5,957 +5,816 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>麻的小辛辣｜庫存管理系統</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #0f0f0d;
-    --surface: #1a1a16;
-    --surface2: #242420;
-    --surface3: #2e2e28;
-    --border: #3a3a32;
-    --border2: #4a4a40;
-    --text: #f0ede4;
-    --text2: #b8b4a8;
-    --text3: #7a7870;
-    --accent: #e8702a;
-    --accent2: #f5a623;
-    --accent-dim: rgba(232,112,42,0.15);
-    --green: #7ec87a;
-    --green-dim: rgba(126,200,122,0.12);
-    --red: #e05252;
-    --tab-h: 56px;
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 15px;
-    overscroll-behavior: none;
-  }
-
-  /* ── Layout ── */
-  #app { display: flex; flex-direction: column; height: 100dvh; }
-
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px 10px;
-    flex-shrink: 0;
-  }
-  .header-top { display: flex; align-items: center; justify-content: space-between; }
-  .brand { font-size: 18px; font-weight: 900; letter-spacing: 0.03em; }
-  .brand span { color: var(--accent); }
-  .total-badge {
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    color: var(--accent2);
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 6px;
-  }
-  .sub-title { font-size: 11px; color: var(--text3); margin-top: 3px; letter-spacing: 0.05em; }
-
-  /* ── Tabs ── */
-  .tab-bar {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .tab-btn {
-    background: none;
-    border: none;
-    color: var(--text3);
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 10px 4px;
-    cursor: pointer;
-    transition: color 0.15s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    border-bottom: 2px solid transparent;
-    position: relative;
-  }
-  .tab-btn .tab-icon { font-size: 17px; }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* ── Content ── */
-  .tab-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(16px + var(--safe-bottom)); }
-  .page { display: none; padding: 0; }
-  .page.active { display: block; }
-
-  /* ── Section ── */
-  .section {
-    margin: 12px 12px 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
-  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--text2); text-transform: uppercase; }
-  .section-total {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--accent2);
-  }
-
-  /* ── Item Row ── */
-  .item-row {
-    display: flex;
-    align-items: center;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    gap: 10px;
-  }
-  .item-row:last-child { border-bottom: none; }
-  .item-info { flex: 1; min-width: 0; }
-  .item-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-meta { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
-  .item-input-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-  .item-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--green);
-    min-width: 72px;
-    text-align: right;
-  }
-  .item-value.zero { color: var(--text3); }
-
-  /* ── Number Input ── */
-  .num-input {
-    background: var(--surface3);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 15px;
-    font-weight: 500;
-    text-align: center;
-    padding: 6px 0;
-    width: 72px;
-    height: 38px;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .num-input:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: var(--surface);
-  }
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-  /* ── Unit label ── */
-  .unit-label { font-size: 10px; color: var(--text3); text-align: right; }
-
-  /* ── Buttons ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Noto Sans TC', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 8px 14px;
-    transition: all 0.15s;
-  }
-  .btn-accent { background: var(--accent); color: #fff; }
-  .btn-accent:active { background: #c55e1f; }
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--text2);
-  }
-  .btn-ghost:active { background: var(--surface3); }
-  .btn-danger {
-    background: transparent;
-    border: 1px solid var(--red);
-    color: var(--red);
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-
-  /* ── Price Table ── */
-  .price-table-wrap { overflow-x: auto; }
-  .price-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .price-table th {
-    background: var(--surface2);
-    color: var(--text3);
-    font-weight: 700;
-    padding: 8px 10px;
-    text-align: left;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-  }
-  .price-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-  .price-table tr:last-child td { border-bottom: none; }
-  .price-table td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
-  .price-table td.computed { color: var(--accent2); font-family: 'DM Mono', monospace; }
-  .price-table input {
-    background: var(--surface3);
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 13px;
-    padding: 5px 7px;
-    width: 100%;
-    font-family: 'DM Mono', monospace;
-  }
-  .price-table input:focus { outline: none; border-color: var(--accent); }
-
-  /* ── Add Item Form ── */
-  .add-form {
-    padding: 12px 14px;
-    background: var(--surface2);
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .add-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .add-form label { font-size: 11px; color: var(--text3); margin-bottom: 3px; display: block; }
-  .add-form .field { flex: 1; min-width: 120px; }
-  .add-form input {
-    background: var(--surface3);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 14px;
-    padding: 8px 10px;
-    width: 100%;
-  }
-  .add-form input:focus { outline: none; border-color: var(--accent); }
-
-  /* ── Summary Page ── */
-  .summary-total {
-    margin: 12px;
-    padding: 20px;
-    background: linear-gradient(135deg, var(--accent-dim), var(--green-dim));
-    border: 1px solid var(--accent);
-    border-radius: 14px;
-    text-align: center;
-  }
-  .summary-total-label { font-size: 12px; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; }
-  .summary-total-num {
-    font-family: 'DM Mono', monospace;
-    font-size: 36px;
-    font-weight: 500;
-    color: var(--accent2);
-    margin-top: 6px;
-  }
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  .summary-row:last-child { border-bottom: none; }
-  .summary-row-name { font-size: 13px; color: var(--text2); }
-  .summary-row-val { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text); }
-  .summary-row-val.highlight { color: var(--accent2); font-weight: 500; }
-  .summary-item-name { font-size: 12px; color: var(--text3); padding-left: 6px; }
-
-  /* ── Print button ── */
-  .action-bar { padding: 12px; display: flex; gap: 8px; }
-
-  /* ── Snackbar ── */
-  #snackbar {
-    position: fixed;
-    bottom: calc(70px + var(--safe-bottom));
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--surface3);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    font-size: 13px;
-    padding: 10px 18px;
-    border-radius: 20px;
-    opacity: 0;
-    transition: all 0.25s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 999;
-  }
-  #snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ── Print styles ── */
-  @media print {
-    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    body { background: #fff !important; color: #000 !important; font-size: 12pt; }
-    #app { height: auto; }
-    header { display: none; }
-    .tab-bar { display: none; }
-    .tab-content { overflow: visible; }
-    .page { display: none !important; }
-    .page#page-summary { display: block !important; }
-    .action-bar { display: none; }
-    .summary-total {
-      background: #f5f0e8 !important;
-      border-color: #c8500a !important;
-      -webkit-print-color-adjust: exact;
-    }
-    .summary-total-num { color: #c8500a !important; font-size: 28pt; }
-    .section { background: #fff !important; border-color: #ccc !important; page-break-inside: avoid; }
-    .section-header { background: #f0f0f0 !important; }
-    .section-title { color: #333 !important; }
-    .section-total { color: #c8500a !important; }
-    .summary-row { border-color: #ddd !important; }
-    .summary-row-val.highlight { color: #c8500a !important; }
-    #snackbar { display: none; }
-    .print-header {
-      display: block !important;
-      text-align: center;
-      padding: 20px 0 10px;
-      font-size: 18pt;
-      font-weight: 900;
-      border-bottom: 2px solid #000;
-      margin-bottom: 16px;
-    }
-    .print-meta { display: block !important; text-align: center; font-size: 10pt; color: #666; margin-bottom: 20px; }
-  }
-  .print-header { display: none; }
-  .print-meta { display: none; }
-
-  /* ── Misc ── */
-  .empty-hint { padding: 20px; text-align: center; color: var(--text3); font-size: 13px; }
-  .cat-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 20px;
-    background: var(--accent-dim);
-    color: var(--accent);
-    letter-spacing: 0.04em;
-    margin-left: 6px;
-  }
-  .divider { height: 1px; background: var(--border); margin: 0; }
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#fafaf8;--surface:#ffffff;--border:#e8e6e0;--border2:#d4d0c8;
+  --text:#1a1a18;--text2:#5a5850;--text3:#9a9890;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  /* 攤車庫存 - 橄欖綠 */
+  --c1:#3d5a3e;--c1b:#4a6e4b;--c1bg:#f0f4f0;--c1light:#e4ede4;--c1mid:#c8dac8;
+  /* 現場庫存 - 赭土橘 */
+  --c2:#7a4020;--c2b:#8f4d28;--c2bg:#faf4f0;--c2light:#f5e8e0;--c2mid:#e8cdb8;
+  /* 商品管理 - 石板藍 */
+  --c3:#2d4a6b;--c3b:#385a82;--c3bg:#f0f4f8;--c3light:#e0eaf4;--c3mid:#b8ceea;
+  /* 列印 - 中性深 */
+  --c4:#2a2a28;--c4b:#3a3a38;--c4bg:#f4f4f2;--c4light:#ebebea;
+  --accent:#e8702a;--red:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;overscroll-behavior:none}
+#app{display:flex;flex-direction:column;height:100dvh}
+ 
+/* ── Header ── */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.logo-wrap{flex-shrink:0}
+.logo-wrap img{height:44px;width:auto;display:block}
+.header-info{flex:1;min-width:0}
+.brand-sub{font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:2px}
+.brand-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:0.02em}
+.total-badge{background:var(--text);color:var(--surface);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;padding:5px 11px;border-radius:6px;flex-shrink:0;letter-spacing:0.02em}
+ 
+/* ── Tabs ── */
+.tab-bar{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-bottom:2px solid var(--border);flex-shrink:0}
+.tab-btn{background:none;border:none;color:var(--text3);font-family:'Noto Sans TC',sans-serif;font-size:11px;font-weight:500;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;letter-spacing:0.02em}
+.tab-btn .ti{font-size:16px}
+.tab-btn[data-tab=cart].active{color:var(--c1);border-bottom-color:var(--c1)}
+.tab-btn[data-tab=stock].active{color:var(--c2);border-bottom-color:var(--c2)}
+.tab-btn[data-tab=price].active{color:var(--c3);border-bottom-color:var(--c3)}
+.tab-btn[data-tab=print].active{color:var(--c4);border-bottom-color:var(--c4)}
+ 
+/* ── Content ── */
+.tab-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
+.page{display:none}
+.page.active{display:block}
+ 
+/* ── Section headers by tab ── */
+.sec-wrap{margin:14px 14px 0}
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:0}
+.sec-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+ 
+/* Cart sections */
+#page-cart .sec-hdr{background:var(--c1light)}
+#page-cart .sec-hdr .sec-idx:nth-child(1){color:var(--c1)}
+#page-cart .sec-total{color:var(--c1b)}
+/* Stock sections */
+#page-stock .sec-hdr{background:var(--c2light)}
+#page-stock .sec-total{color:var(--c2b)}
+/* Price sections */
+#page-price .sec-hdr{background:var(--c3light)}
+#page-price .sec-total{color:var(--c3b)}
+ 
+.sec-title-inp{background:transparent;border:none;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;flex:1;min-width:0;letter-spacing:0.04em}
+.sec-title-inp:focus{outline:none}
+.sec-total{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap}
+.sec-del{background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:2px 4px;line-height:1}
+ 
+/* ── Item Row (攤車/庫存) ── */
+.item-row{display:flex;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px}
+.item-row:last-child{border-bottom:none}
+.item-left{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.item-name-inp{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:14px;font-weight:500;padding:2px 0 4px;width:100%}
+.item-name-inp:focus{outline:none;border-bottom-color:var(--accent)}
+.item-sub-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sub-lbl{font-size:11px;color:var(--text3);white-space:nowrap}
+.spec-inp{background:var(--bg);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:3px 6px;text-align:center}
+.spec-inp:focus{outline:none;border-color:var(--accent)}
+.unit-tag{font-size:11px;color:var(--text2);background:var(--border);padding:2px 7px;border-radius:12px;white-space:nowrap;font-family:'DM Mono',monospace}
+.item-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.num-inp{background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:500;text-align:center;padding:6px 0;width:72px;height:38px;-webkit-appearance:none;appearance:none}
+.num-inp:focus{outline:none;border-color:var(--accent)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+.unit-lbl{font-size:10px;color:var(--text3);text-align:right}
+.item-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;min-width:72px;text-align:right;color:var(--text2)}
+.item-val.zero{color:var(--text3)}
+#page-cart .item-val:not(.zero){color:var(--c1b)}
+#page-stock .item-val:not(.zero){color:var(--c2b)}
+.item-del{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:3px;align-self:center;opacity:.6}
+.item-del:active{opacity:1}
+ 
+/* ── Add row ── */
+.add-item-row{padding:9px 14px;border-top:1px dashed var(--border2);display:flex;gap:8px;align-items:center}
+.add-item-inp{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px}
+.add-item-inp:focus{outline:none;border-color:var(--accent)}
+.add-cat-bar{padding:12px 14px;display:flex;gap:8px;margin-top:4px}
+.add-cat-inp{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:8px 12px}
+.add-cat-inp:focus{outline:none;border-color:var(--accent)}
+ 
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:8px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:12px;padding:7px 13px;transition:all .15s;white-space:nowrap;letter-spacing:0.02em}
+.btn-cart{background:var(--c1);color:#fff}
+.btn-stock{background:var(--c2);color:#fff}
+.btn-price{background:var(--c3);color:#fff}
+.btn-print{background:var(--c4);color:#fff}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);padding:4px 8px;font-size:11px;border-radius:5px;cursor:pointer;font-weight:700}
+ 
+/* ── Price Table ── */
+.ptw{overflow-x:auto}
+.pt{width:100%;border-collapse:collapse;font-size:12px}
+.pt th{background:var(--c3bg);color:var(--text2);font-weight:700;padding:8px 10px;text-align:left;letter-spacing:.04em;white-space:nowrap;border-bottom:1px solid var(--border)}
+.pt td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.pt tr:last-child td{border-bottom:none}
+.pt td.cmp{color:var(--c3b);font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+.pt input{background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:4px 6px;width:100%;font-family:'DM Mono',monospace}
+.pt input:focus{outline:none;border-color:var(--c3)}
+.add-form{padding:12px 14px;background:var(--c3bg);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.add-form-row{display:flex;gap:8px;flex-wrap:wrap}
+.add-form label{font-size:10px;color:var(--text3);margin-bottom:3px;display:block;letter-spacing:0.04em;text-transform:uppercase}
+.add-form .field{flex:1;min-width:90px}
+.add-form input{background:var(--surface);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:13px;padding:7px 9px;width:100%}
+.add-form input:focus{outline:none;border-color:var(--c3)}
+.add-form-title{font-size:11px;font-weight:700;color:var(--c3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px}
+ 
+/* ── 列印頁 ── */
+.sum-top{margin:14px 14px 0;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:center}
+.sum-top-lbl{font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+.sum-top-num{font-family:'DM Mono',monospace;font-size:34px;font-weight:400;color:var(--text);margin-top:6px}
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border)}
+.sum-row:last-child{border-bottom:none}
+.sum-row-name{font-size:12px;color:var(--text2)}
+.sum-row-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--text)}
+.sum-row-val.hi{font-weight:700}
+.sum-item-name{font-size:12px;color:var(--text3);padding-left:10px}
+.action-bar{padding:14px;display:flex;gap:8px;flex-wrap:wrap}
+ 
+/* ── Modal ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.mo.hidden{display:none}
+.mo-box{background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px}
+.mo-title{font-size:15px;font-weight:700;margin-bottom:8px}
+.mo-sub{font-size:13px;color:var(--text3)}
+.mo-btns{display:flex;gap:10px;margin-top:16px}
+.mo-btns .btn{flex:1;justify-content:center}
+ 
+/* ── Snack ── */
+#snack{position:fixed;bottom:calc(70px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:var(--surface);font-size:13px;padding:9px 18px;border-radius:20px;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap;z-index:999}
+#snack.show{opacity:1;transform:translateX(-50%) translateY(0)}
+ 
+/* ── Category color grades ── */
+#page-cart .sec-card:nth-child(1) .sec-hdr{background:var(--c1light)}
+#page-cart .sec-card:nth-child(2) .sec-hdr{background:#dde8dd}
+#page-cart .sec-card:nth-child(3) .sec-hdr{background:#d0dfd0}
+#page-cart .sec-card:nth-child(n+4) .sec-hdr{background:#c5d7c5}
+#page-stock .sec-card:nth-child(1) .sec-hdr{background:var(--c2light)}
+#page-stock .sec-card:nth-child(2) .sec-hdr{background:#f0e0d4}
+#page-stock .sec-card:nth-child(3) .sec-hdr{background:#ead4c0}
+#page-stock .sec-card:nth-child(4) .sec-hdr{background:#e4ccb4}
+#page-stock .sec-card:nth-child(5) .sec-hdr{background:#dcc4a8}
+#page-stock .sec-card:nth-child(n+6) .sec-hdr{background:#d4bc9c}
+#page-price .sec-card:nth-child(1) .sec-hdr{background:var(--c3light)}
+#page-price .sec-card:nth-child(2) .sec-hdr{background:#d4e2f0}
+#page-price .sec-card:nth-child(3) .sec-hdr{background:#c8d8ec}
+#page-price .sec-card:nth-child(n+4) .sec-hdr{background:#bccee8}
+ 
+/* ── Print ── */
+.ph{display:none}.pm{display:none}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff!important;color:#000!important;font-size:10pt}
+  #app{height:auto}
+  header,.tab-bar,.action-bar,#snack,.mo{display:none!important}
+  .tab-content{overflow:visible}
+  .page{display:none!important}
+  .page#page-print{display:block!important}
+  .sec-wrap,.sec-card,.sum-top{page-break-inside:avoid}
+  .ph{display:block!important;text-align:center;padding:12px 0 6px;font-size:16pt;font-weight:700;border-bottom:2px solid #000;margin-bottom:10px}
+  .pm{display:block!important;text-align:center;font-size:9pt;color:#666;margin-bottom:14px}
+}
+.empty-hint{padding:18px;text-align:center;color:var(--text3);font-size:13px}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="header-top">
-      <div>
-        <div class="brand">麻的<span>小辛辣</span></div>
-        <div class="sub-title">庫存管理系統</div>
-      </div>
-      <div class="total-badge" id="header-total">總計 $0</div>
+    <div class="logo-wrap">
+      <img src="data:image/jpeg;base64,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" alt="麻的小辛辣 Logo">
     </div>
+    <div class="header-info">
+      <div class="brand-sub">Na de Siao Sin · La</div>
+      <div class="brand-name">庫存管理系統</div>
+    </div>
+    <div class="total-badge" id="header-total">$ 0</div>
   </header>
-
+ 
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('cart')" id="tab-cart">
-      <span class="tab-icon">🛒</span>攤車
-    </button>
-    <button class="tab-btn" onclick="switchTab('stock')" id="tab-stock">
-      <span class="tab-icon">📦</span>庫存
-    </button>
-    <button class="tab-btn" onclick="switchTab('price')" id="tab-price">
-      <span class="tab-icon">💰</span>進貨價
-    </button>
-    <button class="tab-btn" onclick="switchTab('summary')" id="tab-summary">
-      <span class="tab-icon">📊</span>彙整
-    </button>
+    <button class="tab-btn active" data-tab="cart" onclick="switchTab('cart')" id="tab-cart"><span class="ti">🛒</span>攤車庫存</button>
+    <button class="tab-btn" data-tab="stock" onclick="switchTab('stock')" id="tab-stock"><span class="ti">📦</span>現場庫存</button>
+    <button class="tab-btn" data-tab="price" onclick="switchTab('price')" id="tab-price"><span class="ti">📋</span>商品管理</button>
+    <button class="tab-btn" data-tab="print" onclick="switchTab('print')" id="tab-print"><span class="ti">🖨️</span>列印</button>
   </div>
-
+ 
   <div class="tab-content">
-    <!-- 攤車 -->
     <div class="page active" id="page-cart"></div>
-    <!-- 庫存 -->
     <div class="page" id="page-stock"></div>
-    <!-- 進貨價格 -->
     <div class="page" id="page-price"></div>
-    <!-- 彙整 -->
-    <div class="page" id="page-summary">
-      <div class="print-header">麻的小辛辣｜庫存金額彙整報表</div>
-      <div class="print-meta" id="print-meta"></div>
-      <div class="summary-total">
-        <div class="summary-total-label">全店總庫存金額</div>
-        <div class="summary-total-num" id="summary-grand-total">$0</div>
+    <div class="page" id="page-print">
+      <div class="ph">麻的小辛辣｜庫存金額彙整報表</div>
+      <div class="pm" id="pm"></div>
+      <div class="sum-top">
+        <div class="sum-top-lbl">全店總庫存金額</div>
+        <div class="sum-top-num" id="grand">$ 0</div>
       </div>
       <div class="action-bar">
-        <button class="btn btn-accent" onclick="exportPDF()">📄 匯出 PDF 報告</button>
-        <button class="btn btn-ghost" onclick="switchTab('stock')">返回庫存</button>
+        <button class="btn btn-print" onclick="doPrint()">🖨️ 列印 PDF</button>
+        <button class="btn btn-outline" onclick="exportExcel()">📊 匯出 Excel</button>
       </div>
-      <div id="summary-body"></div>
+      <div id="sum-body"></div>
     </div>
   </div>
 </div>
-<div id="snackbar"></div>
-
+ 
+<div class="mo hidden" id="modal-dc">
+  <div class="mo-box">
+    <div class="mo-title" id="modal-dc-title">確定刪除此分類？</div>
+    <div class="mo-sub">分類內所有品項將一併刪除，此動作無法復原。</div>
+    <div class="mo-btns">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn" style="background:var(--red);color:#fff" onclick="confirmDelCat()">確定刪除</button>
+    </div>
+  </div>
+</div>
+<div id="snack"></div>
 <script>
-// ═══════════════════════════════════════════════
-// 資料定義
-// ═══════════════════════════════════════════════
-const CART_CATEGORIES = ['蔬菜', '火鍋料', '常溫食材'];
-const STOCK_CATEGORIES = ['蔬菜', '火鍋料', '常溫食材', '辛香料', '醬料', '飲料冰品', '包材', '清潔用品'];
-
-const DEFAULT_ITEMS = {
-  蔬菜: [
-    { id:'高麗菜', name:'高麗菜 (箱)', price:550, spec:12000, yield:80, cartGram:150 },
-    { id:'豆芽菜', name:'豆芽菜 (斤)', price:15,  spec:600,   yield:90, cartGram:100 },
-    { id:'秀珍菇', name:'秀珍菇 (斤)', price:80,  spec:600,   yield:90, cartGram:80  },
-    { id:'黑木耳', name:'黑木耳 (斤)', price:50,  spec:600,   yield:90, cartGram:80  },
-    { id:'玉米筍', name:'玉米筍 (斤)', price:130, spec:600,   yield:90, cartGram:60  },
-    { id:'小黃瓜', name:'小黃瓜 (斤)', price:40,  spec:600,   yield:90, cartGram:70  },
-    { id:'金針菇', name:'金針菇 (袋)', price:300, spec:4800,  yield:90, cartGram:100 },
-    { id:'大陸妹', name:'大陸妹 (斤)', price:20,  spec:600,   yield:90, cartGram:120 },
-    { id:'洋蔥',   name:'洋蔥 (袋)',   price:400, spec:10000, yield:90, cartGram:50  },
-    { id:'水蓮',   name:'水蓮 (包)',   price:40,  spec:350,   yield:90, cartGram:100 },
-    { id:'娃娃菜', name:'娃娃菜 (包)', price:35,  spec:240,   yield:90, cartGram:120 },
+// ════════════════════════════════════════
+// 預設資料（商品規格表）
+// ════════════════════════════════════════
+const DEF_PRODUCTS = {
+  蔬菜:[
+    {id:'p蔬菜1',name:'高麗菜（箱）',price:550,spec:12000,unit:'克',yld:0.8},
+    {id:'p蔬菜2',name:'豆芽菜（斤）',price:15,spec:600,unit:'克',yld:0.9},
+    {id:'p蔬菜3',name:'秀珍菇（斤）',price:80,spec:600,unit:'克',yld:0.9},
+    {id:'p蔬菜4',name:'黑木耳（斤）',price:50,spec:600,unit:'克',yld:0.9},
+    {id:'p蔬菜5',name:'玉米筍（斤）',price:130,spec:600,unit:'克',yld:0.9},
+    {id:'p蔬菜6',name:'小黃瓜（斤）',price:40,spec:600,unit:'克',yld:0.9},
+    {id:'p蔬菜7',name:'金針菇（袋）',price:300,spec:4800,unit:'克',yld:0.9},
+    {id:'p蔬菜8',name:'大陸妹（斤）',price:20,spec:600,unit:'克',yld:0.9},
+    {id:'p蔬菜9',name:'洋蔥（袋）',price:400,spec:10000,unit:'克',yld:0.9},
+    {id:'p蔬菜10',name:'水蓮（包）',price:40,spec:350,unit:'克',yld:0.9},
+    {id:'p蔬菜11',name:'娃娃菜（包）',price:35,spec:240,unit:'克',yld:0.9},
   ],
-  火鍋料: [
-    { id:'貢丸', name:'貢丸 (包)', price:80, spec:300, yield:100, cartGram:60 },
-    { id:'魚豆腐', name:'魚豆腐 (包)', price:60, spec:200, yield:100, cartGram:50 },
+  火鍋料:[
+    {id:'p火鍋料1',name:'百頁豆腐（松強）',price:190,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料2',name:'非基改凍豆腐',price:200,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料3',name:'米血（紅牌）',price:220,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料4',name:'鑫鑫腸（卜蜂）',price:133,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料5',name:'甜不辣（蕭牌）',price:200,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料6',name:'黃金魚蛋（川島）',price:580,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料7',name:'純肉小貢丸（鮮味嘉）',price:510,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料8',name:'炸薯塊（麥肯）',price:285,spec:2000,unit:'克',yld:0.9},
+    {id:'p火鍋料9',name:'7mm薯條（佛瑞特）',price:150,spec:2000,unit:'克',yld:0.9},
+    {id:'p火鍋料10',name:'豆包（富源成）',price:480,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料11',name:'0.8mm水煮蓮藕片（晨欣）',price:90,spec:850,unit:'克',yld:0.9},
+    {id:'p火鍋料12',name:'冷凍青花菜（鮮味嘉）',price:62,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料13',name:'冷凍玉米筍（佳昱）',price:115,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料14',name:'冷凍玉米塊（鮮味嘉）',price:215,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料15',name:'無蔥肥腸（佳味）',price:350,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料16',name:'滷豆干（央廚）',price:135,spec:1200,unit:'克',yld:0.9},
+    {id:'p火鍋料17',name:'煙燻豬頭皮（央廚）',price:320,spec:1200,unit:'克',yld:0.9},
+    {id:'p火鍋料18',name:'黃金鴨掌（央廚）',price:250,spec:1200,unit:'克',yld:0.9},
+    {id:'p火鍋料19',name:'醋溜木耳（央廚）',price:200,spec:1200,unit:'克',yld:0.9},
+    {id:'p火鍋料20',name:'鮮蝦抄手（央廚）',price:175,spec:1,unit:'包',yld:0.9},
+    {id:'p火鍋料21',name:'花雕雞腿肉（央廚）',price:235,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料22',name:'明太子蝦滑（央廚）',price:370,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料23',name:'脆薯（央廚）',price:315,spec:2000,unit:'克',yld:0.9},
+    {id:'p火鍋料24',name:'骰子雞丁（央廚）',price:160,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料25',name:'滷牛筋（央廚）',price:250,spec:1200,unit:'克',yld:0.9},
+    {id:'p火鍋料26',name:'滷牛肚（央廚）',price:250,spec:1200,unit:'克',yld:0.9},
+    {id:'p火鍋料27',name:'香脆雞丁（央廚）',price:195,spec:1000,unit:'克',yld:0.9},
+    {id:'p火鍋料28',name:'熟紅蟳（央廚）',price:45,spec:1,unit:'隻',yld:1},
+    {id:'p火鍋料29',name:'米腸（仲輝）',price:70,spec:600,unit:'克',yld:1},
+    {id:'p火鍋料30',name:'嫩肩牛肉捲（巴拉圭）',price:540,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料31',name:'前腿豬肉捲（加拿大）',price:400,spec:3000,unit:'克',yld:0.9},
+    {id:'p火鍋料32',name:'鳥蛋（市場）',price:120,spec:600,unit:'顆',yld:1},
   ],
-  常溫食材: [
-    { id:'冬粉', name:'冬粉 (包)', price:25, spec:200, yield:100, cartGram:50 },
-    { id:'米血', name:'米血 (塊)', price:40, spec:300, yield:100, cartGram:80 },
+  常溫食材:[
+    {id:'p常溫1',name:'王子麵（味王/40入）',price:200,spec:1,unit:'箱',yld:1},
+    {id:'p常溫2',name:'蒸煮麵（維力/10粒）',price:72.5,spec:1,unit:'袋',yld:1},
+    {id:'p常溫3',name:'鍋燒意麵（上智/50包）',price:6.9,spec:1,unit:'包',yld:1},
+    {id:'p常溫4',name:'豆皮捲（龍勝）',price:650,spec:600,unit:'袋',yld:1},
+    {id:'p常溫5',name:'角螺（龍勝）',price:320,spec:1800,unit:'袋',yld:1},
+    {id:'p常溫6',name:'皮蛋（顆）',price:13,spec:1,unit:'顆',yld:1},
+    {id:'p常溫7',name:'三好米',price:1530,spec:30000,unit:'袋',yld:0.9},
+    {id:'p常溫8',name:'油條（鼎上一品）',price:715,spec:3000,unit:'箱',yld:1},
+    {id:'p常溫9',name:'鴨血／盒（大大行）',price:26,spec:1,unit:'盒',yld:1},
   ],
-  辛香料: [
-    { id:'蒜頭', name:'蒜頭 (包)', price:50, spec:300, yield:85, cartGram:0 },
+  辛香料:[
+    {id:'p辛香1',name:'香菜（把）',price:25,spec:300,unit:'克',yld:0.9},
+    {id:'p辛香2',name:'九層塔（斤）',price:50,spec:600,unit:'克',yld:0.9},
+    {id:'p辛香3',name:'老薑（斤）',price:55,spec:600,unit:'克',yld:0.9},
+    {id:'p辛香4',name:'蒜仁（斤）',price:90,spec:600,unit:'克',yld:0.9},
   ],
-  醬料: [
-    { id:'辣椒醬', name:'辣椒醬 (罐)', price:120, spec:1000, yield:100, cartGram:0 },
+  醬料:[
+    {id:'p醬料1',name:'貴夫人K7黑麻油（桶）',price:300,spec:3000,unit:'克',yld:1},
+    {id:'p醬料2',name:'蛤蠣粉（盒）',price:280,spec:1000,unit:'克',yld:1},
+    {id:'p醬料3',name:'福壽沙拉油18L',price:770,spec:1,unit:'桶',yld:1},
+    {id:'p醬料4',name:'福壽耐炸油18L',price:750,spec:1,unit:'桶',yld:1},
+    {id:'p醬料5',name:'味素（包）',price:72,spec:1000,unit:'克',yld:1},
+    {id:'p醬料6',name:'台鹽高級碘鹽（包）',price:15,spec:1000,unit:'克',yld:1},
+    {id:'p醬料7',name:'康寶雞粉（罐）',price:290,spec:1000,unit:'克',yld:1},
+    {id:'p醬料8',name:'冰糖（包）',price:145,spec:3000,unit:'克',yld:1},
+    {id:'p醬料9',name:'龜甲萬醬油（桶）',price:300,spec:5000,unit:'克',yld:1},
+    {id:'p醬料10',name:'金蘭油膏（桶）',price:240,spec:5000,unit:'克',yld:1},
+    {id:'p醬料11',name:'工研烏醋（桶）',price:190,spec:5000,unit:'克',yld:1},
+    {id:'p醬料12',name:'太白粉（袋）',price:22,spec:600,unit:'克',yld:1},
+    {id:'p醬料13',name:'甘草粉（盒）',price:210,spec:600,unit:'克',yld:1},
+    {id:'p醬料14',name:'正元堂川芎（包）',price:250,spec:600,unit:'克',yld:1},
+    {id:'p醬料15',name:'元春堂肉桂捲（包）',price:160,spec:600,unit:'克',yld:1},
+    {id:'p醬料16',name:'元春堂八角（包）',price:240,spec:600,unit:'克',yld:1},
+    {id:'p醬料17',name:'玉泉紹興酒（瓶）',price:190,spec:1,unit:'瓶',yld:1},
+    {id:'p醬料18',name:'郫縣豆瓣醬（包）',price:160,spec:600,unit:'克',yld:1},
+    {id:'p醬料19',name:'福壽辣椒油3L（桶）',price:300,spec:3000,unit:'克',yld:1},
+    {id:'p醬料20',name:'細粒特級砂糖（包）',price:42,spec:1000,unit:'克',yld:1},
+    {id:'p醬料21',name:'台灣白芝麻粒（1斤/包）',price:99,spec:1,unit:'包',yld:1},
+    {id:'p醬料22',name:'香油500ml（瓶）',price:87,spec:1,unit:'瓶',yld:1},
+    {id:'p醬料23',name:'肉燥／包（央廚）',price:155,spec:1200,unit:'克',yld:1},
+    {id:'p醬料24',name:'特製辣椒醬／包（央廚）',price:200,spec:600,unit:'克',yld:1},
+    {id:'p醬料25',name:'麻辣醬／包（央廚）',price:400,spec:1000,unit:'克',yld:1},
+    {id:'p醬料26',name:'麻辣炒醬／包／1kg（央廚）',price:316.67,spec:1,unit:'包',yld:1},
+    {id:'p醬料27',name:'麻辣粉／包／1kg（央廚）',price:700,spec:1,unit:'包',yld:1},
+    {id:'p醬料28',name:'日本炊飯酵素／罐（央廚）',price:2000,spec:1000,unit:'克',yld:1},
+    {id:'p醬料29',name:'乾辣椒／0.6kg（央廚）',price:300,spec:1,unit:'包',yld:1},
+    {id:'p醬料30',name:'麻辣粉／包／1.2kg（央廚）',price:155,spec:1,unit:'包',yld:1},
+    {id:'p醬料31',name:'可果美番茄醬（桶）',price:195,spec:3150,unit:'克',yld:1},
   ],
-  飲料冰品: [],
-  包材: [],
-  清潔用品: [],
+  飲料冰品:[
+    {id:'p飲料1',name:'酸梅湯／罐（央廚）',price:350,spec:1,unit:'罐',yld:1},
+    {id:'p飲料2',name:'綠茶／袋／1.8kg（央廚）',price:700,spec:36,unit:'個',yld:1},
+    {id:'p飲料3',name:'Niseko（抹茶）／桶',price:1100.4,spec:1,unit:'桶',yld:1},
+    {id:'p飲料4',name:'Niseko（薄荷巧克力）／桶',price:1100.4,spec:1,unit:'桶',yld:1},
+    {id:'p飲料5',name:'Niseko（芒果）／桶',price:1100.4,spec:1,unit:'桶',yld:1},
+    {id:'p飲料6',name:'Poki（芒果）／桶',price:649.95,spec:1,unit:'桶',yld:1},
+    {id:'p飲料7',name:'Poki（海鹽檸檬）／桶',price:649.95,spec:1,unit:'桶',yld:1},
+    {id:'p飲料8',name:'Poki（黑糖珍珠）／桶',price:649.95,spec:1,unit:'桶',yld:1},
+    {id:'p飲料9',name:'Poki（香草）／桶',price:649.95,spec:1,unit:'桶',yld:1},
+    {id:'p飲料10',name:'Poki（花生巧酥）／桶',price:649.95,spec:1,unit:'桶',yld:1},
+    {id:'p飲料11',name:'Poki（草莓牛奶）／桶',price:649.95,spec:1,unit:'桶',yld:1},
+    {id:'p飲料12',name:'茉莉綠茶濃縮汁／罐',price:250,spec:1,unit:'罐',yld:1},
+    {id:'p飲料13',name:'冬瓜檸檬濃縮糖漿／罐',price:480,spec:1,unit:'罐',yld:1},
+  ],
+  包材:[
+    {id:'p包材1',name:'902扁碗凸蓋／條（50入）',price:66.67,spec:1,unit:'條',yld:1},
+    {id:'p包材2',name:'818透明單支包吸管／包（1公斤）',price:92,spec:1,unit:'包',yld:1},
+    {id:'p包材3',name:'5.0opp空白包裝竹筷／包（100雙）',price:23.33,spec:1,unit:'包',yld:1},
+    {id:'p包材4',name:'180小菜盒(上蓋)／條（50入）',price:41,spec:1,unit:'條',yld:1},
+    {id:'p包材5',name:'180小菜盒(下盒)／條（50入）',price:47,spec:1,unit:'條',yld:1},
+    {id:'p包材6',name:'3*5pp袋',price:45,spec:1,unit:'包',yld:1},
+    {id:'p包材7',name:'4*6pp袋',price:45,spec:1,unit:'包',yld:1},
+    {id:'p包材8',name:'6*7pp袋',price:45,spec:1,unit:'包',yld:1},
+    {id:'p包材9',name:'1斤提袋',price:40,spec:1,unit:'包',yld:1},
+    {id:'p包材10',name:'3斤提袋',price:40,spec:1,unit:'包',yld:1},
+    {id:'p包材11',name:'5斤提袋',price:40,spec:1,unit:'包',yld:1},
+    {id:'p包材12',name:'半斤耐熱袋',price:45,spec:1,unit:'包',yld:1},
+    {id:'p包材13',name:'1斤耐熱袋',price:30,spec:1,unit:'包',yld:1},
+    {id:'p包材14',name:'260湯蓋／條（50入）',price:16,spec:1,unit:'條',yld:1},
+    {id:'p包材15',name:'260全白湯碗／條（50入）',price:35.75,spec:1,unit:'條',yld:1},
+    {id:'p包材16',name:'390湯蓋／條（50入）',price:22,spec:1,unit:'條',yld:1},
+    {id:'p包材17',name:'390全白湯碗／條（50入）',price:45.25,spec:1,unit:'條',yld:1},
+    {id:'p包材18',name:'205紙杯/條（2000入）',price:1250,spec:1,unit:'條',yld:1},
+    {id:'p包材19',name:'布丁小湯匙（100支）',price:30,spec:1,unit:'包',yld:1},
+    {id:'p包材20',name:'LOGO 制服（S）',price:400,spec:1,unit:'件',yld:1},
+    {id:'p包材21',name:'LOGO 制服（M）',price:400,spec:1,unit:'件',yld:1},
+    {id:'p包材22',name:'LOGO 制服（L）',price:400,spec:1,unit:'件',yld:1},
+    {id:'p包材23',name:'LOGO 602碗／條',price:141.67,spec:1,unit:'條',yld:1},
+    {id:'p包材24',name:'LOGO 902碗／條',price:154.17,spec:1,unit:'條',yld:1},
+    {id:'p包材25',name:'LOGO 飲料杯／條',price:87.5,spec:1,unit:'條',yld:1},
+    {id:'p包材26',name:'LOGO 封口膜／入',price:990,spec:1,unit:'入',yld:1},
+    {id:'p包材27',name:'LOGO 柳木托盤／個',price:280,spec:1,unit:'個',yld:1},
+    {id:'p包材28',name:'感熱紙／捲（80*80）',price:28.33,spec:1,unit:'捲',yld:1},
+    {id:'p包材29',name:'感熱貼紙／捲（40*25）',price:28.9,spec:1,unit:'捲',yld:1},
+    {id:'p包材30',name:'23cm不銹鋼干鍋組／組',price:699,spec:1,unit:'組',yld:1},
+  ],
+  清潔用品:[
+    {id:'p清潔1',name:'洗碗精／桶（3.5kg）',price:40,spec:1,unit:'桶',yld:1},
+    {id:'p清潔2',name:'漂白水／桶（3.5kg）',price:40,spec:1,unit:'桶',yld:1},
+    {id:'p清潔3',name:'酒精／桶（4000cc）',price:260,spec:1,unit:'桶',yld:1},
+    {id:'p清潔4',name:'小抽衛生紙／包',price:5,spec:1,unit:'包',yld:1},
+    {id:'p清潔5',name:'擦手紙／包',price:21,spec:1,unit:'包',yld:1},
+    {id:'p清潔6',name:'南亞保鮮膜／捲',price:29,spec:1,unit:'捲',yld:1},
+    {id:'p清潔7',name:'菜瓜布／個',price:20,spec:1,unit:'個',yld:1},
+    {id:'p清潔8',name:'除油清潔劑／桶（1加侖）',price:280,spec:1,unit:'桶',yld:1},
+    {id:'p清潔9',name:'洗衣粉／袋',price:270,spec:1,unit:'袋',yld:1},
+    {id:'p清潔10',name:'無粉手套／盒',price:99,spec:1,unit:'盒',yld:1},
+    {id:'p清潔11',name:'手扒雞手套／盒',price:25,spec:1,unit:'盒',yld:1},
+    {id:'p清潔12',name:'束繩／包',price:35,spec:1,unit:'包',yld:1},
+    {id:'p清潔13',name:'地板清潔劑／桶',price:79,spec:1,unit:'桶',yld:1},
+    {id:'p清潔14',name:'廁所清潔劑／桶',price:105,spec:1,unit:'桶',yld:1},
+    {id:'p清潔15',name:'黑色垃圾袋／包（超大）',price:104,spec:1,unit:'包',yld:1},
+    {id:'p清潔16',name:'黑色拉繩平底袋／捲（特）',price:42,spec:1,unit:'捲',yld:1},
+    {id:'p清潔17',name:'小垃圾袋／包',price:11,spec:1,unit:'包',yld:1},
+    {id:'p清潔18',name:'洗手乳／罐',price:250,spec:1,unit:'罐',yld:1},
+  ],
 };
-
-// ═══════════════════════════════════════════════
-// State
-// ═══════════════════════════════════════════════
-let state = {
-  items: {},    // { catName: [ itemObj ] }
-  cartInputs: {},  // { itemId: portions }
-  stockInputs: {}, // { itemId: grams }
+const DEF_CATS = Object.keys(DEF_PRODUCTS);
+const DEF = {
+  cartCats:['蔬菜','火鍋料','常溫食材'],
+  stockCats:['蔬菜','火鍋料','常溫食材','辛香料','醬料','飲料冰品','包材','清潔用品'],
+  products: JSON.parse(JSON.stringify(DEF_PRODUCTS)),
+  // 攤車項目: [{id, pid, name, spec, qty}]
+  cartItems:{}, // cat -> []
+  // 現場庫存項目: [{id, pid, name, spec, qty}]
+  stockItems:{}, // cat -> []
 };
-
-function loadState() {
-  try {
-    const saved = localStorage.getItem('mala_v2');
-    if (saved) {
-      state = JSON.parse(saved);
-    } else {
-      state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-      state.cartInputs = {};
-      state.stockInputs = {};
-    }
-  } catch(e) {
-    state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-  }
+DEF_CATS.forEach(c=>{DEF.cartItems[c]=[];DEF.stockItems[c]=[];});
+ 
+// ── State ──
+let S={};
+function load(){
+  try{const v=localStorage.getItem('mala_v5');S=v?JSON.parse(v):JSON.parse(JSON.stringify(DEF));}
+  catch(e){S=JSON.parse(JSON.stringify(DEF));}
+  // ensure all cats exist in items
+  (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
+  (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
 }
-
-function saveState() {
-  localStorage.setItem('mala_v2', JSON.stringify(state));
+function save(){localStorage.setItem('mala_v5',JSON.stringify(S));}
+ 
+// ── 計算 ──
+function pgForProduct(p){
+  const eff=p.spec*(p.yld||1);
+  return eff>0?p.price/eff:p.price;
 }
-
-// ═══════════════════════════════════════════════
-// 計算
-// ═══════════════════════════════════════════════
-function perGram(item) {
-  const eff = item.spec * (item.yield / 100);
-  return eff > 0 ? item.price / eff : 0;
+function itemValue(item,mode){
+  // find product by pid
+  const p=findProduct(item.pid);
+  if(!p)return 0;
+  const pg=pgForProduct(p);
+  const spec=parseFloat(item.spec)||1;
+  const qty=parseFloat(item.qty)||0;
+  return qty*spec*pg;
 }
-
-function fmtMoney(n) {
-  return '$' + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-function fmtPG(n) {
-  return n.toFixed(4);
-}
-
-// ═══════════════════════════════════════════════
-// Tab 切換
-// ═══════════════════════════════════════════════
-function switchTab(tab) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + tab).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'summary') renderSummary();
-}
-
-// ═══════════════════════════════════════════════
-// 攤車頁
-// ═══════════════════════════════════════════════
-function renderCart() {
-  const page = document.getElementById('page-cart');
-  page.innerHTML = '';
-  let grandTotal = 0;
-
-  CART_CATEGORIES.forEach(cat => {
-    const items = state.items[cat] || [];
-    let catTotal = 0;
-    const section = document.createElement('div');
-    section.className = 'section';
-
-    const rows = items.map(item => {
-      const pg = perGram(item);
-      const portions = parseFloat(state.cartInputs[item.id] || 0);
-      const grams = portions * (item.cartGram || 0);
-      const val = grams * pg;
-      catTotal += val;
-      grandTotal += val;
-      const isZero = val === 0;
-      return `
-        <div class="item-row" id="cart-row-${item.id}">
-          <div class="item-info">
-            <div class="item-name">${item.name}</div>
-            <div class="item-meta">每份 ${item.cartGram}g｜每克 ${fmtPG(pg)} 元</div>
-          </div>
-          <div class="item-input-area">
-            <input class="num-input" type="number" inputmode="decimal" min="0" step="0.5"
-              value="${portions > 0 ? portions : ''}"
-              placeholder="0"
-              oninput="updateCartInput('${item.id}', this.value)"
-            >
-            <div class="unit-label">份數</div>
-            <div class="item-value ${isZero?'zero':''}" id="cart-val-${item.id}">${isZero ? '—' : fmtMoney(val)}</div>
-          </div>
-        </div>`;
-    }).join('');
-
-    section.innerHTML = `
-      <div class="section-header">
-        <div class="section-title">【${cat}】</div>
-        <div class="section-total" id="cart-cat-${cat}">${fmtMoney(catTotal)}</div>
-      </div>
-      ${rows || '<div class="empty-hint">尚無品項，請至「進貨價」新增</div>'}
-    `;
-    page.appendChild(section);
-  });
-
-  updateHeaderTotal();
-}
-
-function updateCartInput(id, val) {
-  state.cartInputs[id] = parseFloat(val) || 0;
-  saveState();
-  recomputeCartRow(id);
-  updateHeaderTotal();
-  updateCartCatTotal();
-}
-
-function recomputeCartRow(id) {
-  const item = findItem(id);
-  if (!item) return;
-  const pg = perGram(item);
-  const portions = parseFloat(state.cartInputs[id] || 0);
-  const val = portions * (item.cartGram || 0) * pg;
-  const el = document.getElementById('cart-val-' + id);
-  if (el) {
-    el.textContent = val > 0 ? fmtMoney(val) : '—';
-    el.className = 'item-value' + (val > 0 ? '' : ' zero');
-  }
-}
-
-function updateCartCatTotal() {
-  CART_CATEGORIES.forEach(cat => {
-    const items = state.items[cat] || [];
-    const total = items.reduce((s, item) => {
-      const pg = perGram(item);
-      const portions = parseFloat(state.cartInputs[item.id] || 0);
-      return s + portions * (item.cartGram || 0) * pg;
-    }, 0);
-    const el = document.getElementById('cart-cat-' + cat);
-    if (el) el.textContent = fmtMoney(total);
-  });
-}
-
-// ═══════════════════════════════════════════════
-// 庫存頁
-// ═══════════════════════════════════════════════
-function renderStock() {
-  const page = document.getElementById('page-stock');
-  page.innerHTML = '';
-
-  STOCK_CATEGORIES.forEach(cat => {
-    const items = state.items[cat] || [];
-    let catTotal = 0;
-    const section = document.createElement('div');
-    section.className = 'section';
-
-    const rows = items.map(item => {
-      const pg = perGram(item);
-      const grams = parseFloat(state.stockInputs[item.id] || 0);
-      const val = grams * pg;
-      catTotal += val;
-      const isZero = val === 0;
-      return `
-        <div class="item-row">
-          <div class="item-info">
-            <div class="item-name">${item.name}</div>
-            <div class="item-meta">每克 ${fmtPG(pg)} 元</div>
-          </div>
-          <div class="item-input-area">
-            <input class="num-input" type="number" inputmode="decimal" min="0"
-              value="${grams > 0 ? grams : ''}"
-              placeholder="0"
-              oninput="updateStockInput('${item.id}', this.value, '${cat}')"
-            >
-            <div class="unit-label">克/個</div>
-            <div class="item-value ${isZero?'zero':''}" id="stock-val-${item.id}">${isZero ? '—' : fmtMoney(val)}</div>
-          </div>
-        </div>`;
-    }).join('');
-
-    section.innerHTML = `
-      <div class="section-header">
-        <div class="section-title">【${cat}】</div>
-        <div class="section-total" id="stock-cat-${cat}">${fmtMoney(catTotal)}</div>
-      </div>
-      ${rows || '<div class="empty-hint">尚無品項，請至「進貨價」新增</div>'}
-    `;
-    page.appendChild(section);
-  });
-
-  updateHeaderTotal();
-}
-
-function updateStockInput(id, val, cat) {
-  state.stockInputs[id] = parseFloat(val) || 0;
-  saveState();
-  const item = findItem(id);
-  if (!item) return;
-  const pg = perGram(item);
-  const grams = parseFloat(state.stockInputs[id] || 0);
-  const v = grams * pg;
-  const el = document.getElementById('stock-val-' + id);
-  if (el) {
-    el.textContent = v > 0 ? fmtMoney(v) : '—';
-    el.className = 'item-value' + (v > 0 ? '' : ' zero');
-  }
-  // cat total
-  const catItems = state.items[cat] || [];
-  const catTotal = catItems.reduce((s, it) => {
-    const p = perGram(it);
-    return s + (parseFloat(state.stockInputs[it.id] || 0)) * p;
-  }, 0);
-  const catEl = document.getElementById('stock-cat-' + cat);
-  if (catEl) catEl.textContent = fmtMoney(catTotal);
-  updateHeaderTotal();
-}
-
-// ═══════════════════════════════════════════════
-// 進貨價格頁
-// ═══════════════════════════════════════════════
-function renderPrice() {
-  const page = document.getElementById('page-price');
-  page.innerHTML = '';
-
-  const ALL_CATS = [...new Set([...CART_CATEGORIES, ...STOCK_CATEGORIES])];
-
-  ALL_CATS.forEach(cat => {
-    const items = state.items[cat] || [];
-    const section = document.createElement('div');
-    section.className = 'section';
-
-    const tableRows = items.map((item, idx) => `
-      <tr>
-        <td>
-          <input value="${item.name}" oninput="updateItemField('${cat}', ${idx}, 'name', this.value)" style="min-width:100px">
-        </td>
-        <td>
-          <input type="number" inputmode="decimal" value="${item.price}"
-            oninput="updateItemField('${cat}', ${idx}, 'price', this.value)" style="width:70px">
-        </td>
-        <td>
-          <input type="number" inputmode="decimal" value="${item.spec}"
-            oninput="updateItemField('${cat}', ${idx}, 'spec', this.value)" style="width:70px">
-        </td>
-        <td>
-          <input type="number" inputmode="decimal" value="${item.yield}" min="1" max="100"
-            oninput="updateItemField('${cat}', ${idx}, 'yield', this.value)" style="width:55px">
-        </td>
-        <td class="computed">${fmtPG(perGram(item))}</td>
-        <td>
-          <button class="btn btn-danger btn-sm" onclick="deleteItem('${cat}', ${idx})">刪除</button>
-        </td>
-      </tr>
-    `).join('');
-
-    section.innerHTML = `
-      <div class="section-header">
-        <div class="section-title">【${cat}】</div>
-      </div>
-      <div class="price-table-wrap">
-        <table class="price-table">
-          <thead>
-            <tr>
-              <th>品項名稱</th>
-              <th>進貨價(元)</th>
-              <th>規格(克)</th>
-              <th>製成率%</th>
-              <th>每克(元)</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="price-tbody-${cat}">
-            ${tableRows}
-          </tbody>
-        </table>
-      </div>
-      <div class="add-form">
-        <div class="add-form-row">
-          <div class="field">
-            <label>品項名稱</label>
-            <input type="text" placeholder="例：青椒 (斤)" id="add-name-${cat}">
-          </div>
-          <div class="field" style="max-width:90px">
-            <label>進貨價(元)</label>
-            <input type="number" inputmode="decimal" placeholder="0" id="add-price-${cat}">
-          </div>
-          <div class="field" style="max-width:90px">
-            <label>規格(克)</label>
-            <input type="number" inputmode="decimal" placeholder="0" id="add-spec-${cat}">
-          </div>
-          <div class="field" style="max-width:80px">
-            <label>製成率%</label>
-            <input type="number" inputmode="decimal" placeholder="90" id="add-yield-${cat}">
-          </div>
-        </div>
-        <div class="add-form-row">
-          <div class="field" style="max-width:90px">
-            <label>攤車每份克</label>
-            <input type="number" inputmode="decimal" placeholder="0" id="add-cg-${cat}">
-          </div>
-          <div style="display:flex;align-items:flex-end">
-            <button class="btn btn-accent" onclick="addItem('${cat}')">＋ 新增品項</button>
-          </div>
-        </div>
-      </div>
-    `;
-    page.appendChild(section);
-  });
-}
-
-function updateItemField(cat, idx, field, val) {
-  const items = state.items[cat];
-  if (!items || !items[idx]) return;
-  if (field === 'name') {
-    items[idx].name = val;
-  } else {
-    items[idx][field] = parseFloat(val) || 0;
-  }
-  saveState();
-  // live update computed cell
-  const tbody = document.getElementById('price-tbody-' + cat);
-  if (tbody) {
-    const rows = tbody.querySelectorAll('tr');
-    if (rows[idx]) {
-      const computed = rows[idx].querySelector('td.computed');
-      if (computed) computed.textContent = fmtPG(perGram(items[idx]));
-    }
-  }
-  updateHeaderTotal();
-}
-
-function deleteItem(cat, idx) {
-  if (!confirm('確定刪除此品項？')) return;
-  const item = state.items[cat][idx];
-  if (item) {
-    delete state.cartInputs[item.id];
-    delete state.stockInputs[item.id];
-  }
-  state.items[cat].splice(idx, 1);
-  saveState();
-  renderPrice();
-  renderCart();
-  renderStock();
-  showSnack('已刪除品項');
-}
-
-function addItem(cat) {
-  const name = document.getElementById('add-name-' + cat).value.trim();
-  const price = parseFloat(document.getElementById('add-price-' + cat).value) || 0;
-  const spec  = parseFloat(document.getElementById('add-spec-' + cat).value) || 0;
-  const yld   = parseFloat(document.getElementById('add-yield-' + cat).value) || 90;
-  const cg    = parseFloat(document.getElementById('add-cg-' + cat).value) || 0;
-
-  if (!name || !spec) { showSnack('請填入品項名稱與規格'); return; }
-
-  const id = name + '_' + Date.now();
-  if (!state.items[cat]) state.items[cat] = [];
-  state.items[cat].push({ id, name, price, spec, yield: yld, cartGram: cg });
-  saveState();
-  renderPrice();
-  renderCart();
-  renderStock();
-  showSnack('已新增：' + name);
-}
-
-// ═══════════════════════════════════════════════
-// 彙整頁
-// ═══════════════════════════════════════════════
-function renderSummary() {
-  const body = document.getElementById('summary-body');
-  body.innerHTML = '';
-  let grandTotal = 0;
-
-  // 攤車
-  const cartSec = document.createElement('div');
-  cartSec.className = 'section';
-  let cartTotal = 0;
-  let cartRows = '';
-
-  CART_CATEGORIES.forEach(cat => {
-    const items = state.items[cat] || [];
-    let catTotal = 0;
-    items.forEach(item => {
-      const pg = perGram(item);
-      const portions = parseFloat(state.cartInputs[item.id] || 0);
-      const val = portions * (item.cartGram || 0) * pg;
-      if (val > 0) {
-        cartRows += `<div class="summary-row"><span class="summary-item-name">▸ ${item.name}</span><span class="summary-row-val">${fmtMoney(val)}</span></div>`;
-        catTotal += val;
-        cartTotal += val;
-      }
-    });
-    if (catTotal > 0) {
-      cartRows = `<div class="summary-row"><span class="summary-row-name">【${cat}】小計</span><span class="summary-row-val highlight">${fmtMoney(catTotal)}</span></div>` + cartRows;
-    }
-  });
-  grandTotal += cartTotal;
-  cartSec.innerHTML = `
-    <div class="section-header">
-      <div class="section-title">🛒 攤車</div>
-      <div class="section-total">${fmtMoney(cartTotal)}</div>
-    </div>
-    ${cartRows || '<div class="empty-hint">攤車尚無輸入資料</div>'}
-  `;
-  body.appendChild(cartSec);
-
-  // 庫存
-  const stockSec = document.createElement('div');
-  stockSec.className = 'section';
-  let stockTotal = 0;
-  let stockRows = '';
-
-  STOCK_CATEGORIES.forEach(cat => {
-    const items = state.items[cat] || [];
-    let catTotal = 0;
-    items.forEach(item => {
-      const pg = perGram(item);
-      const grams = parseFloat(state.stockInputs[item.id] || 0);
-      const val = grams * pg;
-      if (val > 0) {
-        stockRows += `<div class="summary-row"><span class="summary-item-name">▸ ${item.name}</span><span class="summary-row-val">${fmtMoney(val)}</span></div>`;
-        catTotal += val;
-        stockTotal += val;
-      }
-    });
-    if (catTotal > 0) {
-      stockRows = `<div class="summary-row"><span class="summary-row-name">【${cat}】小計</span><span class="summary-row-val highlight">${fmtMoney(catTotal)}</span></div>` + stockRows;
-    }
-  });
-  grandTotal += stockTotal;
-  stockSec.innerHTML = `
-    <div class="section-header">
-      <div class="section-title">📦 倉庫庫存</div>
-      <div class="section-total">${fmtMoney(stockTotal)}</div>
-    </div>
-    ${stockRows || '<div class="empty-hint">庫存尚無輸入資料</div>'}
-  `;
-  body.appendChild(stockSec);
-
-  document.getElementById('summary-grand-total').textContent = fmtMoney(grandTotal);
-  updateHeaderTotal();
-}
-
-function exportPDF() {
-  const now = new Date();
-  const ts = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-  document.getElementById('print-meta').textContent = '盤點時間：' + ts + '　　麻的小辛辣 — 內部使用';
-  renderSummary();
-  setTimeout(() => window.print(), 100);
-}
-
-// ═══════════════════════════════════════════════
-// 全域計算
-// ═══════════════════════════════════════════════
-function calcGrandTotal() {
-  let total = 0;
-  const allCats = [...new Set([...CART_CATEGORIES, ...STOCK_CATEGORIES])];
-  allCats.forEach(cat => {
-    (state.items[cat] || []).forEach(item => {
-      const pg = perGram(item);
-      const portions = parseFloat(state.cartInputs[item.id] || 0);
-      const grams = parseFloat(state.stockInputs[item.id] || 0);
-      total += portions * (item.cartGram || 0) * pg;
-      total += grams * pg;
-    });
-  });
-  return total;
-}
-
-function updateHeaderTotal() {
-  document.getElementById('header-total').textContent = '總計 ' + fmtMoney(calcGrandTotal());
-}
-
-// ═══════════════════════════════════════════════
-// 工具
-// ═══════════════════════════════════════════════
-function findItem(id) {
-  const allCats = [...new Set([...CART_CATEGORIES, ...STOCK_CATEGORIES])];
-  for (const cat of allCats) {
-    const found = (state.items[cat] || []).find(i => i.id === id);
-    if (found) return found;
+function findProduct(pid){
+  for(const c in S.products){
+    const f=(S.products[c]||[]).find(p=>p.id===pid);
+    if(f)return f;
   }
   return null;
 }
-
-let snackTimer;
-function showSnack(msg) {
-  const el = document.getElementById('snackbar');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(snackTimer);
-  snackTimer = setTimeout(() => el.classList.remove('show'), 2200);
+function allProducts(){
+  const list=[];
+  for(const c in S.products)(S.products[c]||[]).forEach(p=>list.push(p));
+  return list;
 }
-
-// ═══════════════════════════════════════════════
-// 初始化
-// ═══════════════════════════════════════════════
-loadState();
-renderCart();
-renderStock();
-renderPrice();
-updateHeaderTotal();
+function fmt(n){return '$'+Math.round(n).toLocaleString();}
+function fmtpg(n){
+  if(n>=1)return n.toFixed(2);
+  return n.toFixed(4);
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function grandTotal(){
+  let t=0;
+  (S.cartCats||[]).forEach(c=>(S.cartItems[c]||[]).forEach(i=>t+=itemValue(i,'cart')));
+  (S.stockCats||[]).forEach(c=>(S.stockItems[c]||[]).forEach(i=>t+=itemValue(i,'stock')));
+  return t;
+}
+function updateHeaderTotal(){document.getElementById('header-total').textContent=fmt(grandTotal());}
+ 
+// ── Tab ──
+function switchTab(t){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='print')renderPrint();
+}
+ 
+// ════════════════════════════════════════
+// 攤車庫存 & 現場庫存（共用邏輯）
+// ════════════════════════════════════════
+function renderCart(){buildInventoryPage('cart','page-cart',S.cartCats,S.cartItems);}
+function renderStock(){buildInventoryPage('stock','page-stock',S.stockCats,S.stockItems);}
+ 
+function buildInventoryPage(mode,pageId,cats,items){
+  const page=document.getElementById(pageId);
+  page.innerHTML='';
+  cats.forEach(cat=>{
+    page.appendChild(makeInvSec(mode,cat,items[cat]||[]));
+  });
+  const bar=document.createElement('div');
+  bar.className='add-cat-bar';
+  const btnCls=mode==='cart'?'btn-cart':'btn-stock';
+  bar.innerHTML=`<input class="add-cat-inp" type="text" placeholder="新分類名稱" id="${mode}-new-cat"><button class="btn ${btnCls} btn-sm" onclick="addCat('${mode}')">＋ 新增分類</button>`;
+  page.appendChild(bar);
+  updateHeaderTotal();
+}
+ 
+function makeInvSec(mode,cat,items){
+  const total=items.reduce((s,i)=>s+itemValue(i,mode),0);
+  const sec=document.createElement('div');
+  sec.className='sec-wrap';
+  const card=document.createElement('div');
+  card.className='sec-card';
+  card.id=`sec-${mode}-${cat}`;
+  // header
+  const hdr=document.createElement('div');
+  hdr.className='sec-hdr';
+  hdr.innerHTML=`<input class="sec-title-inp" value="【${cat}】" onblur="renameCat('${mode}','${cat}',this)" onfocus="this.select()"><div class="sec-total" id="${mode}-ct-${cat}">${fmt(total)}</div><button class="sec-del" onclick="askDelCat('${mode}','${cat}')">✕</button>`;
+  card.appendChild(hdr);
+  items.forEach(item=>card.appendChild(makeInvRow(mode,cat,item)));
+  // add item row
+  const ar=document.createElement('div');
+  ar.className='add-item-row';
+  ar.innerHTML=makeProductSelect(mode,cat);
+  card.appendChild(ar);
+  sec.appendChild(card);
+  return sec;
+}
+ 
+function makeProductSelect(mode,cat){
+  const btnCls=mode==='cart'?'btn-cart':'btn-stock';
+  const opts=allProducts().map(p=>`<option value="${p.id}">${p.name} (${p.unit})</option>`).join('');
+  return `<select style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;padding:7px 8px" id="selp-${mode}-${cat}"><option value="">選擇商品...</option>${opts}</select><button class="btn ${btnCls} btn-sm" onclick="addInvItem('${mode}','${cat}')">＋</button>`;
+}
+ 
+function makeInvRow(mode,cat,item){
+  const p=findProduct(item.pid);
+  const unit=p?p.unit:'—';
+  const val=itemValue(item,mode);
+  const row=document.createElement('div');
+  row.className='item-row';
+  row.id=`ir-${mode}-${item.id}`;
+  row.innerHTML=`
+    <div class="item-left">
+      <input class="item-name-inp" type="text" value="${item.name}" onblur="updateInvMeta('${mode}','${cat}','${item.id}','name',this.value)">
+      <div class="item-sub-row">
+        <span class="sub-lbl">規格</span>
+        <input class="spec-inp" type="number" inputmode="decimal" value="${item.spec||1}" style="width:64px" oninput="updateInvMeta('${mode}','${cat}','${item.id}','spec',this.value)">
+        <span class="unit-tag">${unit}</span>
+      </div>
+    </div>
+    <div class="item-right">
+      <input class="num-inp" type="number" inputmode="decimal" min="0" step="1" value="${item.qty||''}" placeholder="0" oninput="updateInvQty('${mode}','${cat}','${item.id}',this.value)">
+      <div class="unit-lbl">數量</div>
+      <div class="item-val${val===0?' zero':''}" id="iv-${mode}-${item.id}">${val>0?fmt(val):'—'}</div>
+    </div>
+    <button class="item-del" onclick="delInvItem('${mode}','${cat}','${item.id}')">🗑</button>`;
+  return row;
+}
+ 
+function addInvItem(mode,cat){
+  const sel=document.getElementById(`selp-${mode}-${cat}`);
+  const pid=sel.value;
+  if(!pid){showSnack('請選擇商品');return;}
+  const p=findProduct(pid);
+  if(!p)return;
+  const items=mode==='cart'?S.cartItems:S.stockItems;
+  if(!items[cat])items[cat]=[];
+  const id=uid();
+  items[cat].push({id,pid,name:p.name,spec:p.spec,qty:0});
+  save();
+  sel.value='';
+  reRenderInvSec(mode,cat);
+  showSnack('已新增：'+p.name);
+}
+ 
+function updateInvQty(mode,cat,id,val){
+  const items=mode==='cart'?S.cartItems[cat]:S.stockItems[cat];
+  const item=items&&items.find(i=>i.id===id);
+  if(!item)return;
+  item.qty=parseFloat(val)||0;
+  save();
+  const v=itemValue(item,mode);
+  const el=document.getElementById('iv-'+mode+'-'+id);
+  if(el){el.textContent=v>0?fmt(v):'—';el.className='item-val'+(v>0?'':' zero');}
+  refreshInvCatTotal(mode,cat);
+  updateHeaderTotal();
+}
+ 
+function updateInvMeta(mode,cat,id,field,val){
+  const items=mode==='cart'?S.cartItems[cat]:S.stockItems[cat];
+  const item=items&&items.find(i=>i.id===id);
+  if(!item)return;
+  if(field==='name')item.name=val;
+  else item.spec=parseFloat(val)||1;
+  save();
+  const v=itemValue(item,mode);
+  const el=document.getElementById('iv-'+mode+'-'+id);
+  if(el){el.textContent=v>0?fmt(v):'—';el.className='item-val'+(v>0?'':' zero');}
+  refreshInvCatTotal(mode,cat);
+  updateHeaderTotal();
+}
+ 
+function delInvItem(mode,cat,id){
+  const ref=mode==='cart'?S.cartItems:S.stockItems;
+  ref[cat]=(ref[cat]||[]).filter(i=>i.id!==id);
+  save();reRenderInvSec(mode,cat);updateHeaderTotal();showSnack('已刪除品項');
+}
+ 
+function refreshInvCatTotal(mode,cat){
+  const items=mode==='cart'?(S.cartItems[cat]||[]):(S.stockItems[cat]||[]);
+  const t=items.reduce((s,i)=>s+itemValue(i,mode),0);
+  const el=document.getElementById(`${mode}-ct-${cat}`);
+  if(el)el.textContent=fmt(t);
+}
+ 
+function reRenderInvSec(mode,cat){
+  const items=mode==='cart'?S.cartItems[cat]:S.stockItems[cat];
+  const old=document.getElementById(`sec-${mode}-${cat}`);
+  if(!old)return;
+  const newSec=makeInvSec(mode,cat,items||[]);
+  old.replaceWith(newSec.querySelector('.sec-card'));
+}
+ 
+function addCat(mode){
+  const inp=document.getElementById(mode+'-new-cat');
+  const name=inp.value.trim();
+  if(!name){showSnack('請輸入分類名稱');return;}
+  const cats=mode==='cart'?S.cartCats:S.stockCats;
+  if(cats.includes(name)){showSnack('分類已存在');return;}
+  cats.push(name);
+  const ref=mode==='cart'?S.cartItems:S.stockItems;
+  if(!ref[name])ref[name]=[];
+  save();inp.value='';
+  if(mode==='cart')renderCart();else renderStock();
+  showSnack('已新增分類：'+name);
+}
+ 
+function renameCat(mode,oldName,el){
+  const newName=el.value.replace(/[【】]/g,'').trim();
+  if(!newName||newName===oldName){el.value='【'+oldName+'】';return;}
+  const cats=mode==='cart'?S.cartCats:S.stockCats;
+  const idx=cats.indexOf(oldName);if(idx>=0)cats[idx]=newName;
+  const ref=mode==='cart'?S.cartItems:S.stockItems;
+  ref[newName]=ref[oldName]||[];delete ref[oldName];
+  save();
+  if(mode==='cart')renderCart();else renderStock();
+  showSnack('已重新命名：'+newName);
+}
+ 
+let _dm='',_dc='';
+function askDelCat(mode,cat){
+  _dm=mode;_dc=cat;
+  document.getElementById('modal-dc-title').textContent=`確定刪除「${cat}」分類？`;
+  document.getElementById('modal-dc').classList.remove('hidden');
+}
+function closeModal(){document.getElementById('modal-dc').classList.add('hidden');}
+function confirmDelCat(){
+  closeModal();
+  const cats=_dm==='cart'?S.cartCats:S.stockCats;
+  const idx=cats.indexOf(_dc);if(idx>=0)cats.splice(idx,1);
+  const ref=_dm==='cart'?S.cartItems:S.stockItems;
+  delete ref[_dc];
+  save();
+  if(_dm==='cart')renderCart();else renderStock();
+  updateHeaderTotal();showSnack('已刪除分類');
+}
+ 
+// ════════════════════════════════════════
+// 商品管理
+// ════════════════════════════════════════
+function renderPrice(){
+  const page=document.getElementById('page-price');
+  page.innerHTML='';
+  const cats=Object.keys(S.products);
+  cats.forEach(cat=>{
+    const items=S.products[cat]||[];
+    const sec=document.createElement('div');
+    sec.className='sec-wrap';
+    const card=document.createElement('div');
+    card.className='sec-card';
+    const tableRows=items.map((p,idx)=>`
+      <tr>
+        <td><input value="${p.name}" oninput="pUpd('${cat}',${idx},'name',this.value)" style="min-width:120px"></td>
+        <td><input type="number" inputmode="decimal" value="${p.price}" oninput="pUpd('${cat}',${idx},'price',this.value)" style="width:65px"></td>
+        <td><input type="number" inputmode="decimal" value="${p.spec}" oninput="pUpd('${cat}',${idx},'spec',this.value)" style="width:60px"></td>
+        <td><input value="${p.unit}" oninput="pUpd('${cat}',${idx},'unit',this.value)" style="width:42px"></td>
+        <td class="cmp" id="ppg-${cat}-${idx}">${fmtpg(pgForProduct(p))}</td>
+        <td><button class="btn-danger" onclick="pDel('${cat}',${idx})">刪除</button></td>
+      </tr>`).join('');
+    card.innerHTML=`
+      <div class="sec-hdr"><input class="sec-title-inp" value="【${cat}】" readonly style="pointer-events:none"></div>
+      <div class="ptw"><table class="pt">
+        <thead><tr><th>品名</th><th>價格(元)</th><th>規格</th><th>單位</th><th>每克/件(元)</th><th></th></tr></thead>
+        <tbody id="ptb-${cat}">${tableRows}</tbody>
+      </table></div>
+      <div class="add-form">
+        <div class="add-form-title">＋ 新增品項到「${cat}」</div>
+        <div class="add-form-row">
+          <div class="field"><label>品名</label><input type="text" placeholder="例：新品（包）" id="pa-name-${cat}"></div>
+          <div class="field" style="max-width:80px"><label>價格(元)</label><input type="number" inputmode="decimal" placeholder="0" id="pa-price-${cat}"></div>
+          <div class="field" style="max-width:72px"><label>規格數量</label><input type="number" inputmode="decimal" placeholder="1" id="pa-spec-${cat}"></div>
+          <div class="field" style="max-width:60px"><label>單位</label><input type="text" placeholder="克" id="pa-unit-${cat}"></div>
+          <div class="field" style="max-width:60px"><label>製成率</label><input type="number" inputmode="decimal" placeholder="1" step="0.01" max="1" id="pa-yld-${cat}"></div>
+        </div>
+        <div><button class="btn btn-price btn-sm" onclick="pAdd('${cat}')">＋ 新增</button></div>
+      </div>`;
+    sec.appendChild(card);
+    page.appendChild(sec);
+  });
+  // 新增分類
+  const bar=document.createElement('div');
+  bar.className='add-cat-bar';
+  bar.innerHTML='<input class="add-cat-inp" type="text" placeholder="新商品類別名稱" id="price-new-cat"><button class="btn btn-price btn-sm" onclick="addPriceCat()">＋ 新增類別</button>';
+  page.appendChild(bar);
+}
+ 
+function pUpd(cat,idx,field,val){
+  const items=S.products[cat];if(!items||!items[idx])return;
+  if(field==='name'||field==='unit')items[idx][field]=val;
+  else items[idx][field]=parseFloat(val)||0;
+  save();
+  const el=document.getElementById(`ppg-${cat}-${idx}`);
+  if(el)el.textContent=fmtpg(pgForProduct(items[idx]));
+  updateHeaderTotal();
+}
+function pDel(cat,idx){
+  if(!confirm('確定刪除此商品？刪除後攤車與現場庫存中同品項的盤點資料將失去成本參照。'))return;
+  S.products[cat].splice(idx,1);
+  save();renderPrice();showSnack('已刪除');
+}
+function pAdd(cat){
+  const name=document.getElementById(`pa-name-${cat}`).value.trim();
+  const price=parseFloat(document.getElementById(`pa-price-${cat}`).value)||0;
+  const spec=parseFloat(document.getElementById(`pa-spec-${cat}`).value)||1;
+  const unit=document.getElementById(`pa-unit-${cat}`).value.trim()||'克';
+  const yld=parseFloat(document.getElementById(`pa-yld-${cat}`).value)||1;
+  if(!name){showSnack('請填入品名');return;}
+  if(!S.products[cat])S.products[cat]=[];
+  S.products[cat].push({id:uid(),name,price,spec,unit,yld});
+  save();renderPrice();showSnack('已新增：'+name);
+}
+function addPriceCat(){
+  const inp=document.getElementById('price-new-cat');
+  const name=inp.value.trim();
+  if(!name){showSnack('請輸入類別名稱');return;}
+  if(S.products[name]){showSnack('類別已存在');return;}
+  S.products[name]=[];
+  save();inp.value='';renderPrice();showSnack('已新增類別：'+name);
+}
+ 
+// ════════════════════════════════════════
+// 列印
+// ════════════════════════════════════════
+function renderPrint(){
+  const body=document.getElementById('sum-body');body.innerHTML='';
+  let grand=0;
+  function buildSec(label,cats,modeKey){
+    let total=0;let html='';
+    cats.forEach(cat=>{
+      const items=modeKey==='cart'?(S.cartItems[cat]||[]):(S.stockItems[cat]||[]);
+      let ct=0;let rows='';
+      items.forEach(item=>{
+        const v=itemValue(item,modeKey);
+        if(v>0){rows+=`<div class="sum-row"><span class="sum-item-name">▸ ${item.name}</span><span class="sum-row-val">${fmt(v)}</span></div>`;ct+=v;}
+      });
+      if(ct>0){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【${cat}】小計</span><span class="sum-row-val hi">${fmt(ct)}</span></div>${rows}`;total+=ct;}
+    });
+    grand+=total;
+    const wrap=document.createElement('div');wrap.className='sec-wrap';
+    const card=document.createElement('div');card.className='sec-card';
+    card.innerHTML=`<div class="sec-hdr"><input class="sec-title-inp" value="${label}" readonly style="pointer-events:none"><div class="sec-total">${fmt(total)}</div></div>${html||'<div class="empty-hint">尚無資料</div>'}`;
+    wrap.appendChild(card);body.appendChild(wrap);
+  }
+  buildSec('🛒 攤車庫存',S.cartCats,'cart');
+  buildSec('📦 現場庫存',S.stockCats,'stock');
+  document.getElementById('grand').textContent=fmt(grand);
+  updateHeaderTotal();
+}
+ 
+function doPrint(){
+  const now=new Date();
+  const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('pm').textContent='盤點時間：'+ts+'　麻的小辛辣 — 內部使用';
+  renderPrint();
+  setTimeout(()=>window.print(),100);
+}
+ 
+function exportExcel(){
+  const now=new Date();
+  const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  let rows=[
+    ['麻的小辛辣｜庫存金額彙整報表'],['盤點時間：'+ts],[],
+    ['區域','分類','品名','規格','數量','單位','金額(元)'],
+  ];
+  S.cartCats.forEach(cat=>(S.cartItems[cat]||[]).forEach(item=>{
+    const p=findProduct(item.pid);
+    const v=itemValue(item,'cart');
+    rows.push(['攤車庫存',cat,item.name,item.spec,item.qty||0,p?p.unit:'—',Math.round(v)]);
+  }));
+  rows.push([]);
+  S.stockCats.forEach(cat=>(S.stockItems[cat]||[]).forEach(item=>{
+    const p=findProduct(item.pid);
+    const v=itemValue(item,'stock');
+    rows.push(['現場庫存',cat,item.name,item.spec,item.qty||0,p?p.unit:'—',Math.round(v)]);
+  }));
+  rows.push([]);rows.push(['','','','','','全店總計',Math.round(grandTotal())]);
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download='麻的小辛辣_庫存_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.csv';
+  a.click();URL.revokeObjectURL(url);
+  showSnack('Excel 已下載');
+}
+ 
+// ── Snack ──
+let _st;
+function showSnack(msg){
+  const el=document.getElementById('snack');el.textContent=msg;el.classList.add('show');
+  clearTimeout(_st);_st=setTimeout(()=>el.classList.remove('show'),2200);
+}
+ 
+// ── 初始化 ──
+load();renderCart();renderStock();renderPrice();updateHeaderTotal();
 </script>
 </body>
 </html>
