@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>麻的小辛辣｜庫存管理系統</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f0f0d;
+    --surface: #1a1a16;
+    --surface2: #242420;
+    --surface3: #2e2e28;
+    --border: #3a3a32;
+    --border2: #4a4a40;
+    --text: #f0ede4;
+    --text2: #b8b4a8;
+    --text3: #7a7870;
+    --accent: #e8702a;
+    --accent2: #f5a623;
+    --accent-dim: rgba(232,112,42,0.15);
+    --green: #7ec87a;
+    --green-dim: rgba(126,200,122,0.12);
+    --red: #e05252;
+    --tab-h: 56px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 15px;
+    overscroll-behavior: none;
+  }
+
+  /* ── Layout ── */
+  #app { display: flex; flex-direction: column; height: 100dvh; }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px 10px;
+    flex-shrink: 0;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-size: 18px; font-weight: 900; letter-spacing: 0.03em; }
+  .brand span { color: var(--accent); }
+  .total-badge {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent2);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .sub-title { font-size: 11px; color: var(--text3); margin-top: 3px; letter-spacing: 0.05em; }
+
+  /* ── Tabs ── */
+  .tab-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 4px;
+    cursor: pointer;
+    transition: color 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border-bottom: 2px solid transparent;
+    position: relative;
+  }
+  .tab-btn .tab-icon { font-size: 17px; }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Content ── */
+  .tab-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(16px + var(--safe-bottom)); }
+  .page { display: none; padding: 0; }
+  .page.active { display: block; }
+
+  /* ── Section ── */
+  .section {
+    margin: 12px 12px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--text2); text-transform: uppercase; }
+  .section-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent2);
+  }
+
+  /* ── Item Row ── */
+  .item-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-meta { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .item-input-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .item-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    min-width: 72px;
+    text-align: right;
+  }
+  .item-value.zero { color: var(--text3); }
+
+  /* ── Number Input ── */
+  .num-input {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    padding: 6px 0;
+    width: 72px;
+    height: 38px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .num-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* ── Unit label ── */
+  .unit-label { font-size: 10px; color: var(--text3); text-align: right; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 14px;
+    transition: all 0.15s;
+  }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-accent:active { background: #c55e1f; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+  .btn-ghost:active { background: var(--surface3); }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* ── Price Table ── */
+  .price-table-wrap { overflow-x: auto; }
+  .price-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .price-table th {
+    background: var(--surface2);
+    color: var(--text3);
+    font-weight: 700;
+    padding: 8px 10px;
+    text-align: left;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .price-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .price-table tr:last-child td { border-bottom: none; }
+  .price-table td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .price-table td.computed { color: var(--accent2); font-family: 'DM Mono', monospace; }
+  .price-table input {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    padding: 5px 7px;
+    width: 100%;
+    font-family: 'DM Mono', monospace;
+  }
+  .price-table input:focus { outline: none; border-color: var(--accent); }
+
+  /* ── Add Item Form ── */
+  .add-form {
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .add-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .add-form label { font-size: 11px; color: var(--text3); margin-bottom: 3px; display: block; }
+  .add-form .field { flex: 1; min-width: 120px; }
+  .add-form input {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    padding: 8px 10px;
+    width: 100%;
+  }
+  .add-form input:focus { outline: none; border-color: var(--accent); }
+
+  /* ── Summary Page ── */
+  .summary-total {
+    margin: 12px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--accent-dim), var(--green-dim));
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    text-align: center;
+  }
+  .summary-total-label { font-size: 12px; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; }
+  .summary-total-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--accent2);
+    margin-top: 6px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row-name { font-size: 13px; color: var(--text2); }
+  .summary-row-val { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text); }
+  .summary-row-val.highlight { color: var(--accent2); font-weight: 500; }
+  .summary-item-name { font-size: 12px; color: var(--text3); padding-left: 6px; }
+
+  /* ── Print button ── */
+  .action-bar { padding: 12px; display: flex; gap: 8px; }
+
+  /* ── Snackbar ── */
+  #snackbar {
+    position: fixed;
+    bottom: calc(70px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: all 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+  }
+  #snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Print styles ── */
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff !important; color: #000 !important; font-size: 12pt; }
+    #app { height: auto; }
+    header { display: none; }
+    .tab-bar { display: none; }
+    .tab-content { overflow: visible; }
+    .page { display: none !important; }
+    .page#page-summary { display: block !important; }
+    .action-bar { display: none; }
+    .summary-total {
+      background: #f5f0e8 !important;
+      border-color: #c8500a !important;
+      -webkit-print-color-adjust: exact;
+    }
+    .summary-total-num { color: #c8500a !important; font-size: 28pt; }
+    .section { background: #fff !important; border-color: #ccc !important; page-break-inside: avoid; }
+    .section-header { background: #f0f0f0 !important; }
+    .section-title { color: #333 !important; }
+    .section-total { color: #c8500a !important; }
+    .summary-row { border-color: #ddd !important; }
+    .summary-row-val.highlight { color: #c8500a !important; }
+    #snackbar { display: none; }
+    .print-header {
+      display: block !important;
+      text-align: center;
+      padding: 20px 0 10px;
+      font-size: 18pt;
+      font-weight: 900;
+      border-bottom: 2px solid #000;
+      margin-bottom: 16px;
+    }
+    .print-meta { display: block !important; text-align: center; font-size: 10pt; color: #666; margin-bottom: 20px; }
+  }
+  .print-header { display: none; }
+  .print-meta { display: none; }
+
+  /* ── Misc ── */
+  .empty-hint { padding: 20px; text-align: center; color: var(--text3); font-size: 13px; }
+  .cat-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-left: 6px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="brand">麻的<span>小辛辣</span></div>
+        <div class="sub-title">庫存管理系統</div>
+      </div>
+      <div class="total-badge" id="header-total">總計 $0</div>
+    </div>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('cart')" id="tab-cart">
+      <span class="tab-icon">🛒</span>攤車
+    </button>
+    <button class="tab-btn" onclick="switchTab('stock')" id="tab-stock">
+      <span class="tab-icon">📦</span>庫存
+    </button>
+    <button class="tab-btn" onclick="switchTab('price')" id="tab-price">
+      <span class="tab-icon">💰</span>進貨價
+    </button>
+    <button class="tab-btn" onclick="switchTab('summary')" id="tab-summary">
+      <span class="tab-icon">📊</span>彙整
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- 攤車 -->
+    <div class="page active" id="page-cart"></div>
+    <!-- 庫存 -->
+    <div class="page" id="page-stock"></div>
+    <!-- 進貨價格 -->
+    <div class="page" id="page-price"></div>
+    <!-- 彙整 -->
+    <div class="page" id="page-summary">
+      <div class="print-header">麻的小辛辣｜庫存金額彙整報表</div>
+      <div class="print-meta" id="print-meta"></div>
+      <div class="summary-total">
+        <div class="summary-total-label">全店總庫存金額</div>
+        <div class="summary-total-num" id="summary-grand-total">$0</div>
+      </div>
+      <div class="action-bar">
+        <button class="btn btn-accent" onclick="exportPDF()">📄 匯出 PDF 報告</button>
+        <button class="btn btn-ghost" onclick="switchTab('stock')">返回庫存</button>
+      </div>
+      <div id="summary-body"></div>
+    </div>
+  </div>
+</div>
+<div id="snackbar"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// 資料定義
+// ═══════════════════════════════════════════════
+const CART_CATEGORIES = ['蔬菜', '火鍋料', '常溫食材'];
+const STOCK_CATEGORIES = ['蔬菜', '火鍋料', '常溫食材', '辛香料', '醬料', '飲料冰品', '包材', '清潔用品'];
+
+const DEFAULT_ITEMS = {
+  蔬菜: [
+    { id:'高麗菜', name:'高麗菜 (箱)', price:550, spec:12000, yield:80, cartGram:150 },
+    { id:'豆芽菜', name:'豆芽菜 (斤)', price:15,  spec:600,   yield:90, cartGram:100 },
+    { id:'秀珍菇', name:'秀珍菇 (斤)', price:80,  spec:600,   yield:90, cartGram:80  },
+    { id:'黑木耳', name:'黑木耳 (斤)', price:50,  spec:600,   yield:90, cartGram:80  },
+    { id:'玉米筍', name:'玉米筍 (斤)', price:130, spec:600,   yield:90, cartGram:60  },
+    { id:'小黃瓜', name:'小黃瓜 (斤)', price:40,  spec:600,   yield:90, cartGram:70  },
+    { id:'金針菇', name:'金針菇 (袋)', price:300, spec:4800,  yield:90, cartGram:100 },
+    { id:'大陸妹', name:'大陸妹 (斤)', price:20,  spec:600,   yield:90, cartGram:120 },
+    { id:'洋蔥',   name:'洋蔥 (袋)',   price:400, spec:10000, yield:90, cartGram:50  },
+    { id:'水蓮',   name:'水蓮 (包)',   price:40,  spec:350,   yield:90, cartGram:100 },
+    { id:'娃娃菜', name:'娃娃菜 (包)', price:35,  spec:240,   yield:90, cartGram:120 },
+  ],
+  火鍋料: [
+    { id:'貢丸', name:'貢丸 (包)', price:80, spec:300, yield:100, cartGram:60 },
+    { id:'魚豆腐', name:'魚豆腐 (包)', price:60, spec:200, yield:100, cartGram:50 },
+  ],
+  常溫食材: [
+    { id:'冬粉', name:'冬粉 (包)', price:25, spec:200, yield:100, cartGram:50 },
+    { id:'米血', name:'米血 (塊)', price:40, spec:300, yield:100, cartGram:80 },
+  ],
+  辛香料: [
+    { id:'蒜頭', name:'蒜頭 (包)', price:50, spec:300, yield:85, cartGram:0 },
+  ],
+  醬料: [
+    { id:'辣椒醬', name:'辣椒醬 (罐)', price:120, spec:1000, yield:100, cartGram:0 },
+  ],
+  飲料冰品: [],
+  包材: [],
+  清潔用品: [],
+};
+
+// ═══════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════
+let state = {
+  items: {},    // { catName: [ itemObj ] }
+  cartInputs: {},  // { itemId: portions }
+  stockInputs: {}, // { itemId: grams }
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('mala_v2');
+    if (saved) {
+      state = JSON.parse(saved);
+    } else {
+      state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+      state.cartInputs = {};
+      state.stockInputs = {};
+    }
+  } catch(e) {
+    state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+  }
+}
+
+function saveState() {
+  localStorage.setItem('mala_v2', JSON.stringify(state));
+}
+
+// ═══════════════════════════════════════════════
+// 計算
+// ═══════════════════════════════════════════════
+function perGram(item) {
+  const eff = item.spec * (item.yield / 100);
+  return eff > 0 ? item.price / eff : 0;
+}
+
+function fmtMoney(n) {
+  return '$' + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function fmtPG(n) {
+  return n.toFixed(4);
+}
+
+// ═══════════════════════════════════════════════
+// Tab 切換
+// ═══════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'summary') renderSummary();
+}
+
+// ═══════════════════════════════════════════════
+// 攤車頁
+// ═══════════════════════════════════════════════
+function renderCart() {
+  const page = document.getElementById('page-cart');
+  page.innerHTML = '';
+  let grandTotal = 0;
+
+  CART_CATEGORIES.forEach(cat => {
+    const items = state.items[cat] || [];
+    let catTotal = 0;
+    const section = document.createElement('div');
+    section.className = 'section';
+
+    const rows = items.map(item => {
+      const pg = perGram(item);
+      const portions = parseFloat(state.cartInputs[item.id] || 0);
+      const grams = portions * (item.cartGram || 0);
+      const val = grams * pg;
+      catTotal += val;
+      grandTotal += val;
+      const isZero = val === 0;
+      return `
+        <div class="item-row" id="cart-row-${item.id}">
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-meta">每份 ${item.cartGram}g｜每克 ${fmtPG(pg)} 元</div>
+          </div>
+          <div class="item-input-area">
+            <input class="num-input" type="number" inputmode="decimal" min="0" step="0.5"
+              value="${portions > 0 ? portions : ''}"
+              placeholder="0"
+              oninput="updateCartInput('${item.id}', this.value)"
+            >
+            <div class="unit-label">份數</div>
+            <div class="item-value ${isZero?'zero':''}" id="cart-val-${item.id}">${isZero ? '—' : fmtMoney(val)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    section.innerHTML = `
+      <div class="section-header">
+        <div class="section-title">【${cat}】</div>
+        <div class="section-total" id="cart-cat-${cat}">${fmtMoney(catTotal)}</div>
+      </div>
+      ${rows || '<div class="empty-hint">尚無品項，請至「進貨價」新增</div>'}
+    `;
+    page.appendChild(section);
+  });
+
+  updateHeaderTotal();
+}
+
+function updateCartInput(id, val) {
+  state.cartInputs[id] = parseFloat(val) || 0;
+  saveState();
+  recomputeCartRow(id);
+  updateHeaderTotal();
+  updateCartCatTotal();
+}
+
+function recomputeCartRow(id) {
+  const item = findItem(id);
+  if (!item) return;
+  const pg = perGram(item);
+  const portions = parseFloat(state.cartInputs[id] || 0);
+  const val = portions * (item.cartGram || 0) * pg;
+  const el = document.getElementById('cart-val-' + id);
+  if (el) {
+    el.textContent = val > 0 ? fmtMoney(val) : '—';
+    el.className = 'item-value' + (val > 0 ? '' : ' zero');
+  }
+}
+
+function updateCartCatTotal() {
+  CART_CATEGORIES.forEach(cat => {
+    const items = state.items[cat] || [];
+    const total = items.reduce((s, item) => {
+      const pg = perGram(item);
+      const portions = parseFloat(state.cartInputs[item.id] || 0);
+      return s + portions * (item.cartGram || 0) * pg;
+    }, 0);
+    const el = document.getElementById('cart-cat-' + cat);
+    if (el) el.textContent = fmtMoney(total);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// 庫存頁
+// ═══════════════════════════════════════════════
+function renderStock() {
+  const page = document.getElementById('page-stock');
+  page.innerHTML = '';
+
+  STOCK_CATEGORIES.forEach(cat => {
+    const items = state.items[cat] || [];
+    let catTotal = 0;
+    const section = document.createElement('div');
+    section.className = 'section';
+
+    const rows = items.map(item => {
+      const pg = perGram(item);
+      const grams = parseFloat(state.stockInputs[item.id] || 0);
+      const val = grams * pg;
+      catTotal += val;
+      const isZero = val === 0;
+      return `
+        <div class="item-row">
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-meta">每克 ${fmtPG(pg)} 元</div>
+          </div>
+          <div class="item-input-area">
+            <input class="num-input" type="number" inputmode="decimal" min="0"
+              value="${grams > 0 ? grams : ''}"
+              placeholder="0"
+              oninput="updateStockInput('${item.id}', this.value, '${cat}')"
+            >
+            <div class="unit-label">克/個</div>
+            <div class="item-value ${isZero?'zero':''}" id="stock-val-${item.id}">${isZero ? '—' : fmtMoney(val)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    section.innerHTML = `
+      <div class="section-header">
+        <div class="section-title">【${cat}】</div>
+        <div class="section-total" id="stock-cat-${cat}">${fmtMoney(catTotal)}</div>
+      </div>
+      ${rows || '<div class="empty-hint">尚無品項，請至「進貨價」新增</div>'}
+    `;
+    page.appendChild(section);
+  });
+
+  updateHeaderTotal();
+}
+
+function updateStockInput(id, val, cat) {
+  state.stockInputs[id] = parseFloat(val) || 0;
+  saveState();
+  const item = findItem(id);
+  if (!item) return;
+  const pg = perGram(item);
+  const grams = parseFloat(state.stockInputs[id] || 0);
+  const v = grams * pg;
+  const el = document.getElementById('stock-val-' + id);
+  if (el) {
+    el.textContent = v > 0 ? fmtMoney(v) : '—';
+    el.className = 'item-value' + (v > 0 ? '' : ' zero');
+  }
+  // cat total
+  const catItems = state.items[cat] || [];
+  const catTotal = catItems.reduce((s, it) => {
+    const p = perGram(it);
+    return s + (parseFloat(state.stockInputs[it.id] || 0)) * p;
+  }, 0);
+  const catEl = document.getElementById('stock-cat-' + cat);
+  if (catEl) catEl.textContent = fmtMoney(catTotal);
+  updateHeaderTotal();
+}
+
+// ═══════════════════════════════════════════════
+// 進貨價格頁
+// ═══════════════════════════════════════════════
+function renderPrice() {
+  const page = document.getElementById('page-price');
+  page.innerHTML = '';
+
+  const ALL_CATS = [...new Set([...CART_CATEGORIES, ...STOCK_CATEGORIES])];
+
+  ALL_CATS.forEach(cat => {
+    const items = state.items[cat] || [];
+    const section = document.createElement('div');
+    section.className = 'section';
+
+    const tableRows = items.map((item, idx) => `
+      <tr>
+        <td>
+          <input value="${item.name}" oninput="updateItemField('${cat}', ${idx}, 'name', this.value)" style="min-width:100px">
+        </td>
+        <td>
+          <input type="number" inputmode="decimal" value="${item.price}"
+            oninput="updateItemField('${cat}', ${idx}, 'price', this.value)" style="width:70px">
+        </td>
+        <td>
+          <input type="number" inputmode="decimal" value="${item.spec}"
+            oninput="updateItemField('${cat}', ${idx}, 'spec', this.value)" style="width:70px">
+        </td>
+        <td>
+          <input type="number" inputmode="decimal" value="${item.yield}" min="1" max="100"
+            oninput="updateItemField('${cat}', ${idx}, 'yield', this.value)" style="width:55px">
+        </td>
+        <td class="computed">${fmtPG(perGram(item))}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('${cat}', ${idx})">刪除</button>
+        </td>
+      </tr>
+    `).join('');
+
+    section.innerHTML = `
+      <div class="section-header">
+        <div class="section-title">【${cat}】</div>
+      </div>
+      <div class="price-table-wrap">
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th>品項名稱</th>
+              <th>進貨價(元)</th>
+              <th>規格(克)</th>
+              <th>製成率%</th>
+              <th>每克(元)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="price-tbody-${cat}">
+            ${tableRows}
+          </tbody>
+        </table>
+      </div>
+      <div class="add-form">
+        <div class="add-form-row">
+          <div class="field">
+            <label>品項名稱</label>
+            <input type="text" placeholder="例：青椒 (斤)" id="add-name-${cat}">
+          </div>
+          <div class="field" style="max-width:90px">
+            <label>進貨價(元)</label>
+            <input type="number" inputmode="decimal" placeholder="0" id="add-price-${cat}">
+          </div>
+          <div class="field" style="max-width:90px">
+            <label>規格(克)</label>
+            <input type="number" inputmode="decimal" placeholder="0" id="add-spec-${cat}">
+          </div>
+          <div class="field" style="max-width:80px">
+            <label>製成率%</label>
+            <input type="number" inputmode="decimal" placeholder="90" id="add-yield-${cat}">
+          </div>
+        </div>
+        <div class="add-form-row">
+          <div class="field" style="max-width:90px">
+            <label>攤車每份克</label>
+            <input type="number" inputmode="decimal" placeholder="0" id="add-cg-${cat}">
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn btn-accent" onclick="addItem('${cat}')">＋ 新增品項</button>
+          </div>
+        </div>
+      </div>
+    `;
+    page.appendChild(section);
+  });
+}
+
+function updateItemField(cat, idx, field, val) {
+  const items = state.items[cat];
+  if (!items || !items[idx]) return;
+  if (field === 'name') {
+    items[idx].name = val;
+  } else {
+    items[idx][field] = parseFloat(val) || 0;
+  }
+  saveState();
+  // live update computed cell
+  const tbody = document.getElementById('price-tbody-' + cat);
+  if (tbody) {
+    const rows = tbody.querySelectorAll('tr');
+    if (rows[idx]) {
+      const computed = rows[idx].querySelector('td.computed');
+      if (computed) computed.textContent = fmtPG(perGram(items[idx]));
+    }
+  }
+  updateHeaderTotal();
+}
+
+function deleteItem(cat, idx) {
+  if (!confirm('確定刪除此品項？')) return;
+  const item = state.items[cat][idx];
+  if (item) {
+    delete state.cartInputs[item.id];
+    delete state.stockInputs[item.id];
+  }
+  state.items[cat].splice(idx, 1);
+  saveState();
+  renderPrice();
+  renderCart();
+  renderStock();
+  showSnack('已刪除品項');
+}
+
+function addItem(cat) {
+  const name = document.getElementById('add-name-' + cat).value.trim();
+  const price = parseFloat(document.getElementById('add-price-' + cat).value) || 0;
+  const spec  = parseFloat(document.getElementById('add-spec-' + cat).value) || 0;
+  const yld   = parseFloat(document.getElementById('add-yield-' + cat).value) || 90;
+  const cg    = parseFloat(document.getElementById('add-cg-' + cat).value) || 0;
+
+  if (!name || !spec) { showSnack('請填入品項名稱與規格'); return; }
+
+  const id = name + '_' + Date.now();
+  if (!state.items[cat]) state.items[cat] = [];
+  state.items[cat].push({ id, name, price, spec, yield: yld, cartGram: cg });
+  saveState();
+  renderPrice();
+  renderCart();
+  renderStock();
+  showSnack('已新增：' + name);
+}
+
+// ═══════════════════════════════════════════════
+// 彙整頁
+// ═══════════════════════════════════════════════
+function renderSummary() {
+  const body = document.getElementById('summary-body');
+  body.innerHTML = '';
+  let grandTotal = 0;
+
+  // 攤車
+  const cartSec = document.createElement('div');
+  cartSec.className = 'section';
+  let cartTotal = 0;
+  let cartRows = '';
+
+  CART_CATEGORIES.forEach(cat => {
+    const items = state.items[cat] || [];
+    let catTotal = 0;
+    items.forEach(item => {
+      const pg = perGram(item);
+      const portions = parseFloat(state.cartInputs[item.id] || 0);
+      const val = portions * (item.cartGram || 0) * pg;
+      if (val > 0) {
+        cartRows += `<div class="summary-row"><span class="summary-item-name">▸ ${item.name}</span><span class="summary-row-val">${fmtMoney(val)}</span></div>`;
+        catTotal += val;
+        cartTotal += val;
+      }
+    });
+    if (catTotal > 0) {
+      cartRows = `<div class="summary-row"><span class="summary-row-name">【${cat}】小計</span><span class="summary-row-val highlight">${fmtMoney(catTotal)}</span></div>` + cartRows;
+    }
+  });
+  grandTotal += cartTotal;
+  cartSec.innerHTML = `
+    <div class="section-header">
+      <div class="section-title">🛒 攤車</div>
+      <div class="section-total">${fmtMoney(cartTotal)}</div>
+    </div>
+    ${cartRows || '<div class="empty-hint">攤車尚無輸入資料</div>'}
+  `;
+  body.appendChild(cartSec);
+
+  // 庫存
+  const stockSec = document.createElement('div');
+  stockSec.className = 'section';
+  let stockTotal = 0;
+  let stockRows = '';
+
+  STOCK_CATEGORIES.forEach(cat => {
+    const items = state.items[cat] || [];
+    let catTotal = 0;
+    items.forEach(item => {
+      const pg = perGram(item);
+      const grams = parseFloat(state.stockInputs[item.id] || 0);
+      const val = grams * pg;
+      if (val > 0) {
+        stockRows += `<div class="summary-row"><span class="summary-item-name">▸ ${item.name}</span><span class="summary-row-val">${fmtMoney(val)}</span></div>`;
+        catTotal += val;
+        stockTotal += val;
+      }
+    });
+    if (catTotal > 0) {
+      stockRows = `<div class="summary-row"><span class="summary-row-name">【${cat}】小計</span><span class="summary-row-val highlight">${fmtMoney(catTotal)}</span></div>` + stockRows;
+    }
+  });
+  grandTotal += stockTotal;
+  stockSec.innerHTML = `
+    <div class="section-header">
+      <div class="section-title">📦 倉庫庫存</div>
+      <div class="section-total">${fmtMoney(stockTotal)}</div>
+    </div>
+    ${stockRows || '<div class="empty-hint">庫存尚無輸入資料</div>'}
+  `;
+  body.appendChild(stockSec);
+
+  document.getElementById('summary-grand-total').textContent = fmtMoney(grandTotal);
+  updateHeaderTotal();
+}
+
+function exportPDF() {
+  const now = new Date();
+  const ts = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('print-meta').textContent = '盤點時間：' + ts + '　　麻的小辛辣 — 內部使用';
+  renderSummary();
+  setTimeout(() => window.print(), 100);
+}
+
+// ═══════════════════════════════════════════════
+// 全域計算
+// ═══════════════════════════════════════════════
+function calcGrandTotal() {
+  let total = 0;
+  const allCats = [...new Set([...CART_CATEGORIES, ...STOCK_CATEGORIES])];
+  allCats.forEach(cat => {
+    (state.items[cat] || []).forEach(item => {
+      const pg = perGram(item);
+      const portions = parseFloat(state.cartInputs[item.id] || 0);
+      const grams = parseFloat(state.stockInputs[item.id] || 0);
+      total += portions * (item.cartGram || 0) * pg;
+      total += grams * pg;
+    });
+  });
+  return total;
+}
+
+function updateHeaderTotal() {
+  document.getElementById('header-total').textContent = '總計 ' + fmtMoney(calcGrandTotal());
+}
+
+// ═══════════════════════════════════════════════
+// 工具
+// ═══════════════════════════════════════════════
+function findItem(id) {
+  const allCats = [...new Set([...CART_CATEGORIES, ...STOCK_CATEGORIES])];
+  for (const cat of allCats) {
+    const found = (state.items[cat] || []).find(i => i.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
+let snackTimer;
+function showSnack(msg) {
+  const el = document.getElementById('snackbar');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(snackTimer);
+  snackTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════
+// 初始化
+// ═══════════════════════════════════════════════
+loadState();
+renderCart();
+renderStock();
+renderPrice();
+updateHeaderTotal();
+</script>
+</body>
+</html>
