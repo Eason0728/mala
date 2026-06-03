@@ -130,6 +130,24 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .sum-top{margin:14px 14px 0;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:center}
 .sum-top-lbl{font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
 .sum-top-num{font-family:'DM Mono',monospace;font-size:34px;font-weight:400;color:var(--text);margin-top:6px}
+
+/* ── 列印頁：分類小計卡片 ── */
+.subtotal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 14px 0}
+.subtotal-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 12px;text-align:center}
+.subtotal-card.food{border-top:3px solid var(--c1)}
+.subtotal-card.pack{border-top:3px solid var(--c2)}
+.subtotal-card.total{border-top:3px solid var(--c4)}
+.subtotal-card-lbl{font-size:10px;color:var(--text3);letter-spacing:.06em;line-height:1.4}
+.subtotal-card-num{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);margin-top:5px}
+.subtotal-card.food .subtotal-card-num{color:var(--c1)}
+.subtotal-card.pack .subtotal-card-num{color:var(--c2)}
+.subtotal-card.total .subtotal-card-num{color:var(--c4)}
+.subtotal-card-sub{font-size:9px;color:var(--text3);margin-top:3px;line-height:1.4}
+@media print{
+  .subtotal-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin:0 0 10px 0!important}
+  .subtotal-card{border-radius:6px;padding:10px 8px}
+  .subtotal-card-num{font-size:16px}
+}
 .sum-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border)}
 .sum-row:last-child{border-bottom:none}
 .sum-row-name{font-size:12px;color:var(--text2)}
@@ -256,9 +274,22 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <div class="threshold-panel-body open" id="thresh-body"></div>
       </div>
-      <div class="sum-top">
-        <div class="sum-top-lbl">全店總庫存金額</div>
-        <div class="sum-top-num" id="grand">$ 0</div>
+      <div class="subtotal-grid" id="print-subtotals">
+        <div class="subtotal-card food">
+          <div class="subtotal-card-lbl">食材總金額</div>
+          <div class="subtotal-card-num" id="sub-food">$ 0</div>
+          <div class="subtotal-card-sub">蔬菜＋火鍋料＋常溫食材<br>辛香料＋醬料＋飲料冰品</div>
+        </div>
+        <div class="subtotal-card pack">
+          <div class="subtotal-card-lbl">包材總金額</div>
+          <div class="subtotal-card-num" id="sub-pack">$ 0</div>
+          <div class="subtotal-card-sub">包材＋清潔用品</div>
+        </div>
+        <div class="subtotal-card total">
+          <div class="subtotal-card-lbl">全店總庫存金額</div>
+          <div class="subtotal-card-num" id="grand">$ 0</div>
+          <div class="subtotal-card-sub">食材＋包材合計</div>
+        </div>
       </div>
       <div class="action-bar">
         <button class="btn btn-print" onclick="doPrint()">🖨️ 列印 PDF</button>
@@ -1019,6 +1050,22 @@ function renderPrint(){
     card.innerHTML=`<div class="sec-hdr" style="background:#fdf0f0"><input class="sec-title-inp" value="⚠️ 未盤點品項（攤車＋現場均無數量）" readonly style="pointer-events:none;color:var(--red)"><div class="sec-total" style="color:var(--red)">${missingAlerts.length} 項</div></div>${missingHtml}`;
     wrap.appendChild(card);body.appendChild(wrap);
   }
+
+  // ── 食材 & 包材 小計 ──
+  const FOOD_CATS=['蔬菜','火鍋料','常溫食材','辛香料','醬料','飲料冰品'];
+  const PACK_CATS=['包材','清潔用品'];
+  function catTotal(catName){
+    let t=0;
+    // 攤車
+    (S.cartItems[catName]||[]).forEach(i=>t+=itemValue(i,'cart'));
+    // 現場
+    (S.stockItems[catName]||[]).forEach(i=>t+=itemValue(i,'stock'));
+    return t;
+  }
+  const foodTotal=FOOD_CATS.reduce((s,c)=>s+catTotal(c),0);
+  const packTotal=PACK_CATS.reduce((s,c)=>s+catTotal(c),0);
+  document.getElementById('sub-food').textContent=fmt(foodTotal);
+  document.getElementById('sub-pack').textContent=fmt(packTotal);
 
   document.getElementById('grand').textContent=fmt(grand);
   updateHeaderTotal();
