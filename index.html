@@ -521,7 +521,14 @@ function makeInvSec(mode,cat,items){
 
 function makeProductSelect(mode,cat){
   const btnCls=mode==='cart'?'btn-cart':'btn-stock';
-  const opts=allProducts().map(p=>`<option value="${p.id}">${p.name} (${p.unit})</option>`).join('');
+  // 若分類名稱在商品管理中有對應的同名分類，則只顯示該分類商品
+  let products;
+  if(S.products[cat]!==undefined){
+    products=(S.products[cat]||[]);
+  } else {
+    products=allProducts();
+  }
+  const opts=products.map(p=>`<option value="${p.id}">${p.name} (${p.unit})</option>`).join('');
   return `<select style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;padding:7px 8px" id="selp-${mode}-${cat}"><option value="">選擇商品...</option>${opts}</select><button class="btn ${btnCls} btn-sm" onclick="addInvItem('${mode}','${cat}')">＋</button>`;
 }
 
