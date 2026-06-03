@@ -190,6 +190,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .alert-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
 .sum-row.has-alert-low{background:#fff5f5}
 .sum-row.has-alert-high{background:#fffbf0}
+.sum-row.has-alert-missing{background:#fdf4ff}
+.alert-badge.missing{background:#f3e8ff;border:1px solid #9b59b6;color:#6c3483}
 .alert-summary-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;margin:14px 14px 0;font-size:13px;font-weight:700}
 .alert-summary-bar.has-alert{background:#fdf0f0;border:1px solid var(--red);color:var(--red)}
 .alert-summary-bar.clean{background:#f0f6f0;border:1px solid #7ec87a;color:#3d6e40}
@@ -816,7 +818,11 @@ function pAdd(cat){
   const yld=parseFloat(document.getElementById(`pa-yld-${cat}`).value)||1;
   if(!name){showSnack('請填入品名');return;}
   if(!S.products[cat])S.products[cat]=[];
-  S.products[cat].push({id:uid(),name,price,spec,unit,yld});
+  const newPid=uid();
+  S.products[cat].push({id:newPid,name,price,spec,unit,yld});
+  // 自動套用預設異常通知：高於 2000 元
+  if(!S.thresholds)S.thresholds={};
+  if(!S.thresholds[newPid])S.thresholds[newPid]={low:null,high:2000};
   save();renderPrice();showSnack('已新增：'+name);
 }
 function addPriceCat(){
@@ -898,7 +904,9 @@ function renderThreshPanel(){
 // 掃描所有攤車+現場庫存品項，比對對應商品的閾值
 function checkAlerts(){
   const alerts=[];
-  function scan(cats,modeKey){
+
+  // ── 金額門檻判斷（攤車＋現場各自掃描）──
+  function scanThresh(cats,modeKey){
     cats.forEach(cat=>{
       const items=modeKey==='cart'?(S.cartItems[cat]||[]):(S.stockItems[cat]||[]);
       items.forEach(item=>{
@@ -910,8 +918,32 @@ function checkAlerts(){
       });
     });
   }
-  scan(S.cartCats,'cart');
-  scan(S.stockCats,'stock');
+  scanThresh(S.cartCats,'cart');
+  scanThresh(S.stockCats,'stock');
+
+  // ── 未輸入數量判斷（合併：攤車＋現場都沒輸入才算異常）──
+  // 以商品管理所有品項為基準
+  for(const cat in S.products){
+    (S.products[cat]||[]).forEach(p=>{
+      // 在攤車庫存中找這個商品，且 qty > 0
+      let hasCart=false;
+      for(const c of S.cartCats){
+        const found=(S.cartItems[c]||[]).find(i=>i.pid===p.id && parseFloat(i.qty||0)>0);
+        if(found){hasCart=true;break;}
+      }
+      // 在現場庫存中找這個商品，且 qty > 0
+      let hasStock=false;
+      for(const c of S.stockCats){
+        const found=(S.stockItems[c]||[]).find(i=>i.pid===p.id && parseFloat(i.qty||0)>0);
+        if(found){hasStock=true;break;}
+      }
+      // 合併判斷：兩邊都沒有輸入才算異常
+      if(!hasCart && !hasStock){
+        alerts.push({item:{id:p.id,pid:p.id,name:p.name},val:0,thresh:0,type:'missing',mode:'both'});
+      }
+    });
+  }
+
   return alerts;
 }
 
@@ -927,12 +959,14 @@ function renderPrint(){
   sumBar.id='alert-summary-bar';
   const lowCount=alerts.filter(a=>a.type==='low').length;
   const highCount=alerts.filter(a=>a.type==='high').length;
+  const missingCount=alerts.filter(a=>a.type==='missing').length;
   if(alerts.length===0){
     sumBar.className='alert-summary-bar clean';
-    sumBar.innerHTML='<span>✅</span><span>所有品項庫存正常</span>';
+    sumBar.innerHTML='<span>✅</span><span>所有品項庫存正常，盤點完整</span>';
   } else {
     sumBar.className='alert-summary-bar has-alert';
     const parts=[];
+    if(missingCount>0) parts.push(`${missingCount} 項未盤點`);
     if(lowCount>0) parts.push(`${lowCount} 項偏低`);
     if(highCount>0) parts.push(`${highCount} 項偏高`);
     sumBar.innerHTML=`<span>⚠️</span><span>${parts.join('、')}，請確認庫存</span>`;
@@ -972,6 +1006,20 @@ function renderPrint(){
   }
   buildSec('🛒 攤車庫存',S.cartCats,'cart');
   buildSec('📦 現場庫存',S.stockCats,'stock');
+
+  // ── 未盤點品項區塊 ──
+  const missingAlerts=alerts.filter(a=>a.type==='missing');
+  if(missingAlerts.length>0){
+    const wrap=document.createElement('div');wrap.className='sec-wrap';
+    const card=document.createElement('div');card.className='sec-card';
+    let missingHtml='';
+    missingAlerts.forEach(a=>{
+      missingHtml+=`<div class="sum-row has-alert-missing"><span class="sum-item-name">▸ ${a.item.name}</span><span class="alert-badge missing"><span class="alert-dot"></span>未盤點</span></div>`;
+    });
+    card.innerHTML=`<div class="sec-hdr" style="background:#fdf0f0"><input class="sec-title-inp" value="⚠️ 未盤點品項（攤車＋現場均無數量）" readonly style="pointer-events:none;color:var(--red)"><div class="sec-total" style="color:var(--red)">${missingAlerts.length} 項</div></div>${missingHtml}`;
+    wrap.appendChild(card);body.appendChild(wrap);
+  }
+
   document.getElementById('grand').textContent=fmt(grand);
   updateHeaderTotal();
 }
