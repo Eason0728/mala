@@ -182,6 +182,41 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .pm{display:block!important;text-align:center;font-size:9pt;color:#666;margin-bottom:14px}
 }
 .empty-hint{padding:18px;text-align:center;color:var(--text3);font-size:13px}
+
+/* ── 異常通知 ── */
+.alert-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.alert-badge.low{background:#fde8e8;border:1px solid var(--red);color:var(--red)}
+.alert-badge.high{background:#fff3cd;border:1px solid #d48a00;color:#7a5200}
+.alert-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sum-row.has-alert-low{background:#fff5f5}
+.sum-row.has-alert-high{background:#fffbf0}
+.alert-summary-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;margin:14px 14px 0;font-size:13px;font-weight:700}
+.alert-summary-bar.has-alert{background:#fdf0f0;border:1px solid var(--red);color:var(--red)}
+.alert-summary-bar.clean{background:#f0f6f0;border:1px solid #7ec87a;color:#3d6e40}
+
+/* 設定面板 */
+.threshold-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:14px 14px 0;overflow:hidden}
+.threshold-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--c4bg);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.threshold-panel-title{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase}
+.threshold-panel-body{display:none;padding:0}
+.threshold-panel-body.open{display:block}
+.thresh-cat-hdr{padding:8px 14px 5px;background:var(--c4bg);font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.thresh-row{display:flex;align-items:center;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.thresh-row:last-child{border-bottom:none}
+.thresh-name{font-size:13px;color:var(--text);width:100%;margin-bottom:3px;font-weight:500}
+.thresh-lbl{font-size:11px;color:var(--text3);white-space:nowrap}
+.thresh-inp{background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:4px 8px;width:82px;text-align:right}
+.thresh-inp:focus{outline:none;border-color:var(--c4)}
+.thresh-sep{width:100%;height:0;border:none}
+.thresh-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.thresh-tag.low{background:#fde8e8;color:var(--red)}
+.thresh-tag.high{background:#fff3cd;color:#7a5200}
+
+@media print{
+  .threshold-panel{display:none!important}
+  .alert-summary-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .alert-badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -194,7 +229,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="brand-sub">MA DE SIAO SIN — LA</div>
       <div class="brand-name">庫存管理系統</div>
     </div>
-    <div class="total-badge" id="header-total">$ 0</div>
+    <div class="total-badge" id="header-total" ontouchstart="startAdminHold()" ontouchend="cancelAdminHold()" onmousedown="startAdminHold()" onmouseup="cancelAdminHold()" onmouseleave="cancelAdminHold()" style="user-select:none">$ 0</div>
   </header>
 
   <div class="tab-bar">
@@ -211,6 +246,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="page-print">
       <div class="ph">麻的小辛辣｜庫存金額彙整報表</div>
       <div class="pm" id="pm"></div>
+
+      <div class="threshold-panel" id="threshold-panel" style="display:none">
+        <div class="threshold-panel-hdr">
+          <span class="threshold-panel-title">⚙️ 異常通知設定</span>
+          <button onclick="hideAdminPanel()" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer">✕ 關閉</button>
+        </div>
+        <div class="threshold-panel-body open" id="thresh-body"></div>
+      </div>
       <div class="sum-top">
         <div class="sum-top-lbl">全店總庫存金額</div>
         <div class="sum-top-num" id="grand">$ 0</div>
@@ -425,6 +468,7 @@ function load(){
   try{const v=localStorage.getItem('mala_v5');S=v?JSON.parse(v):JSON.parse(JSON.stringify(DEF));}
   catch(e){S=JSON.parse(JSON.stringify(DEF));}
   // ensure all cats exist in items
+  if(!S.thresholds)S.thresholds={};
   (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
   (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
 }
@@ -692,7 +736,8 @@ function importConfig(){
         if(!data.products||typeof data.products!=='object')throw new Error('格式錯誤');
         if(!confirm('匯入後將覆蓋目前所有資料（商品設定、攤車庫存、現場庫存），確定繼續？'))return;
         S=data;
-        (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
+        if(!S.thresholds)S.thresholds={};
+  (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
         (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
         save();renderCart();renderStock();renderPrice();renderPrint();updateHeaderTotal();
         showSnack('資料匯入成功！');
@@ -786,9 +831,114 @@ function addPriceCat(){
 // ════════════════════════════════════════
 // 列印
 // ════════════════════════════════════════
+
+// ════════════════════════════════════════
+// 異常通知（以商品管理品項為基準）
+// S.thresholds = { productId: { low: number|null, high: number|null } }
+// ════════════════════════════════════════
+function getThresh(pid){
+  return (S.thresholds && S.thresholds[pid]) ? S.thresholds[pid] : null;
+}
+function setThresh(pid, type, val){
+  if(!S.thresholds) S.thresholds={};
+  if(!S.thresholds[pid]) S.thresholds[pid]={low:null,high:null};
+  const v = (val===''||val===null) ? null : parseFloat(val);
+  S.thresholds[pid][type] = (v===null||isNaN(v)) ? null : v;
+  // 若兩個都是 null，刪掉整個 key 節省空間
+  if(S.thresholds[pid].low===null && S.thresholds[pid].high===null){
+    delete S.thresholds[pid];
+  }
+  save();
+}
+
+function toggleThreshPanel(){
+  const body=document.getElementById('thresh-body');
+  const arrow=document.getElementById('thresh-arrow');
+  body.classList.toggle('open');
+  arrow.textContent=body.classList.contains('open')?'▲':'▼';
+  if(body.classList.contains('open')) renderThreshPanel();
+}
+
+function renderThreshPanel(){
+  const body=document.getElementById('thresh-body');
+  body.innerHTML='';
+  const cats=Object.keys(S.products||{});
+  cats.forEach(cat=>{
+    const items=(S.products[cat]||[]);
+    if(items.length===0) return;
+    const catHdr=document.createElement('div');
+    catHdr.className='thresh-cat-hdr';
+    catHdr.textContent='【'+cat+'】';
+    body.appendChild(catHdr);
+    items.forEach(p=>{
+      const t=getThresh(p.id)||{low:null,high:null};
+      const row=document.createElement('div');
+      row.className='thresh-row';
+      row.innerHTML=`
+        <div class="thresh-name">${p.name}</div>
+        <span class="thresh-tag low">低於</span>
+        <input class="thresh-inp" type="number" inputmode="decimal" placeholder="不設定"
+          value="${t.low!==null?t.low:''}"
+          onchange="setThresh('${p.id}','low',this.value);renderPrint()">
+        <span class="thresh-lbl">元</span>
+        <span style="flex:1"></span>
+        <span class="thresh-tag high">高於</span>
+        <input class="thresh-inp" type="number" inputmode="decimal" placeholder="不設定"
+          value="${t.high!==null?t.high:''}"
+          onchange="setThresh('${p.id}','high',this.value);renderPrint()">
+        <span class="thresh-lbl">元</span>`;
+      body.appendChild(row);
+    });
+  });
+  if(body.children.length===0){
+    body.innerHTML='<div class="empty-hint">商品管理尚無品項</div>';
+  }
+}
+
+// 掃描所有攤車+現場庫存品項，比對對應商品的閾值
+function checkAlerts(){
+  const alerts=[];
+  function scan(cats,modeKey){
+    cats.forEach(cat=>{
+      const items=modeKey==='cart'?(S.cartItems[cat]||[]):(S.stockItems[cat]||[]);
+      items.forEach(item=>{
+        const t=getThresh(item.pid);
+        if(!t) return;
+        const v=itemValue(item,modeKey);
+        if(t.low!==null && v < t.low) alerts.push({item,val:v,thresh:t.low,type:'low',mode:modeKey});
+        else if(t.high!==null && v > t.high) alerts.push({item,val:v,thresh:t.high,type:'high',mode:modeKey});
+      });
+    });
+  }
+  scan(S.cartCats,'cart');
+  scan(S.stockCats,'stock');
+  return alerts;
+}
+
 function renderPrint(){
   const body=document.getElementById('sum-body');body.innerHTML='';
   let grand=0;
+  const alerts=checkAlerts();
+
+  // 異常摘要列
+  const existing=document.getElementById('alert-summary-bar');
+  if(existing)existing.remove();
+  const sumBar=document.createElement('div');
+  sumBar.id='alert-summary-bar';
+  const lowCount=alerts.filter(a=>a.type==='low').length;
+  const highCount=alerts.filter(a=>a.type==='high').length;
+  if(alerts.length===0){
+    sumBar.className='alert-summary-bar clean';
+    sumBar.innerHTML='<span>✅</span><span>所有品項庫存正常</span>';
+  } else {
+    sumBar.className='alert-summary-bar has-alert';
+    const parts=[];
+    if(lowCount>0) parts.push(`${lowCount} 項偏低`);
+    if(highCount>0) parts.push(`${highCount} 項偏高`);
+    sumBar.innerHTML=`<span>⚠️</span><span>${parts.join('、')}，請確認庫存</span>`;
+  }
+  body.parentNode.insertBefore(sumBar,body);
+
   function buildSec(label,cats,modeKey){
     let total=0;let html='';
     cats.forEach(cat=>{
@@ -796,7 +946,21 @@ function renderPrint(){
       let ct=0;let rows='';
       items.forEach(item=>{
         const v=itemValue(item,modeKey);
-        if(v>0){rows+=`<div class="sum-row"><span class="sum-item-name">▸ ${item.name}</span><span class="sum-row-val">${fmt(v)}</span></div>`;ct+=v;}
+        if(v>0){
+          const t=getThresh(item.pid);
+          let badge='';let rowCls='sum-row';
+          if(t){
+            if(t.low!==null && v<t.low){
+              badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;
+              rowCls='sum-row has-alert-low';
+            } else if(t.high!==null && v>t.high){
+              badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;
+              rowCls='sum-row has-alert-high';
+            }
+          }
+          rows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${item.name}</span><div style="display:flex;align-items:center;gap:6px">${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
+          ct+=v;
+        }
       });
       if(ct>0){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【${cat}】小計</span><span class="sum-row-val hi">${fmt(ct)}</span></div>${rows}`;total+=ct;}
     });
@@ -853,6 +1017,56 @@ let _st;
 function showSnack(msg){
   const el=document.getElementById('snack');el.textContent=msg;el.classList.add('show');
   clearTimeout(_st);_st=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+
+// ════════════════════════════════════════
+// 後台入口（長按總金額 3 秒）
+// ════════════════════════════════════════
+let _adminHoldTimer = null;
+let _adminHoldProgress = null;
+
+function startAdminHold(){
+  cancelAdminHold();
+  // 顯示進度提示
+  let count = 3;
+  const badge = document.getElementById('header-total');
+  const origText = badge.textContent;
+  _adminHoldProgress = setInterval(()=>{
+    count--;
+    badge.textContent = count > 0 ? `後台 ${count}…` : '進入中…';
+    if(count <= 0){ clearInterval(_adminHoldProgress); _adminHoldProgress = null; }
+  }, 1000);
+
+  _adminHoldTimer = setTimeout(()=>{
+    badge.textContent = origText;
+    openAdminPanel();
+  }, 3000);
+}
+
+function cancelAdminHold(){
+  if(_adminHoldTimer){ clearTimeout(_adminHoldTimer); _adminHoldTimer = null; }
+  if(_adminHoldProgress){ clearInterval(_adminHoldProgress); _adminHoldProgress = null; }
+  // 還原顯示
+  updateHeaderTotal();
+}
+
+function openAdminPanel(){
+  // 切換到列印分頁
+  switchTab('print');
+  // 顯示設定面板
+  const panel = document.getElementById('threshold-panel');
+  panel.style.display = 'block';
+  renderThreshPanel();
+  // 捲到頂部
+  document.querySelector('.tab-content').scrollTop = 0;
+  showSnack('已進入後台設定');
+}
+
+function hideAdminPanel(){
+  const panel = document.getElementById('threshold-panel');
+  panel.style.display = 'none';
+  showSnack('已關閉後台設定');
 }
 
 // ── 初始化 ──
