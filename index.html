@@ -218,6 +218,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="action-bar">
         <button class="btn btn-print" onclick="doPrint()">🖨️ 列印 PDF</button>
         <button class="btn btn-outline" onclick="exportExcel()">📊 匯出 Excel</button>
+        <button class="btn btn-outline" onclick="exportConfig()">📤 匯出資料</button>
+        <button class="btn btn-outline" onclick="importConfig()">📥 匯入資料</button>
       </div>
       <div id="sum-body"></div>
     </div>
@@ -668,6 +670,39 @@ function confirmDelCat(){
 // ════════════════════════════════════════
 // 商品管理
 // ════════════════════════════════════════
+function exportConfig(){
+  const json=JSON.stringify(S,null,2);
+  const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const now=new Date();
+  const a=document.createElement('a');a.href=url;
+  a.download='庫存資料_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.json';
+  a.click();URL.revokeObjectURL(url);
+  showSnack('資料已匯出');
+}
+function importConfig(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!data.products||typeof data.products!=='object')throw new Error('格式錯誤');
+        if(!confirm('匯入後將覆蓋目前所有資料（商品設定、攤車庫存、現場庫存），確定繼續？'))return;
+        S=data;
+        (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
+        (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
+        save();renderCart();renderStock();renderPrice();renderPrint();updateHeaderTotal();
+        showSnack('資料匯入成功！');
+      }catch(err){showSnack('匯入失敗：檔案格式不正確');}
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
 function renderPrice(){
   const page=document.getElementById('page-price');
   page.innerHTML='';
