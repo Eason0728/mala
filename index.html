@@ -88,7 +88,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .item-val.zero{color:var(--text3)}
 #page-cart .item-val:not(.zero){color:var(--c1b)}
 #page-stock .item-val:not(.zero){color:var(--c2b)}
-.item-del{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:3px;align-self:center;opacity:.6}
+/* ── Collapsible inventory section ── */
+.sec-body{overflow:hidden;transition:max-height .25s ease}
+.sec-body.collapsed{max-height:0!important}
+.sec-toggle{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:2px 6px;line-height:1;transition:transform .2s;flex-shrink:0}
+.sec-toggle.collapsed{transform:rotate(-90deg)}
 .item-del:active{opacity:1}
 
 /* ── Add row ── */
@@ -319,168 +323,168 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 // ════════════════════════════════════════
 const DEF_PRODUCTS = {
   蔬菜:[
-    {id:'p蔬菜1',name:'高麗菜（箱）',price:550,spec:12000,unit:'克',yld:0.8},
-    {id:'p蔬菜2',name:'豆芽菜（斤）',price:15,spec:600,unit:'克',yld:0.9},
-    {id:'p蔬菜3',name:'秀珍菇（斤）',price:80,spec:600,unit:'克',yld:0.9},
-    {id:'p蔬菜4',name:'黑木耳（斤）',price:50,spec:600,unit:'克',yld:0.9},
-    {id:'p蔬菜5',name:'玉米筍（斤）',price:130,spec:600,unit:'克',yld:0.9},
-    {id:'p蔬菜6',name:'小黃瓜（斤）',price:40,spec:600,unit:'克',yld:0.9},
-    {id:'p蔬菜7',name:'金針菇（袋）',price:300,spec:4800,unit:'克',yld:0.9},
-    {id:'p蔬菜8',name:'大陸妹（斤）',price:20,spec:600,unit:'克',yld:0.9},
-    {id:'p蔬菜9',name:'洋蔥（袋）',price:400,spec:10000,unit:'克',yld:0.9},
-    {id:'p蔬菜10',name:'水蓮（包）',price:40,spec:350,unit:'克',yld:0.9},
-    {id:'p蔬菜11',name:'娃娃菜（包）',price:35,spec:240,unit:'克',yld:0.9},
+    {id:'p蔬菜1',name:'高麗菜（箱）',price:550,spec:12000,unit:'克'},
+    {id:'p蔬菜2',name:'豆芽菜（斤）',price:15,spec:600,unit:'克'},
+    {id:'p蔬菜3',name:'秀珍菇（斤）',price:80,spec:600,unit:'克'},
+    {id:'p蔬菜4',name:'黑木耳（斤）',price:50,spec:600,unit:'克'},
+    {id:'p蔬菜5',name:'玉米筍（斤）',price:130,spec:600,unit:'克'},
+    {id:'p蔬菜6',name:'小黃瓜（斤）',price:40,spec:600,unit:'克'},
+    {id:'p蔬菜7',name:'金針菇（袋）',price:300,spec:4800,unit:'克'},
+    {id:'p蔬菜8',name:'大陸妹（斤）',price:20,spec:600,unit:'克'},
+    {id:'p蔬菜9',name:'洋蔥（袋）',price:400,spec:10000,unit:'克'},
+    {id:'p蔬菜10',name:'水蓮（包）',price:40,spec:350,unit:'克'},
+    {id:'p蔬菜11',name:'娃娃菜（包）',price:35,spec:240,unit:'克'},
   ],
   火鍋料:[
-    {id:'p火鍋料1',name:'百頁豆腐（松強）',price:190,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料2',name:'非基改凍豆腐',price:200,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料3',name:'米血（紅牌）',price:220,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料4',name:'鑫鑫腸（卜蜂）',price:133,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料5',name:'甜不辣（蕭牌）',price:200,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料6',name:'黃金魚蛋（川島）',price:580,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料7',name:'純肉小貢丸（鮮味嘉）',price:510,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料8',name:'炸薯塊（麥肯）',price:285,spec:2000,unit:'克',yld:0.9},
-    {id:'p火鍋料9',name:'7mm薯條（佛瑞特）',price:150,spec:2000,unit:'克',yld:0.9},
-    {id:'p火鍋料10',name:'豆包（富源成）',price:480,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料11',name:'0.8mm水煮蓮藕片（晨欣）',price:90,spec:850,unit:'克',yld:0.9},
-    {id:'p火鍋料12',name:'冷凍青花菜（鮮味嘉）',price:62,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料13',name:'冷凍玉米筍（佳昱）',price:115,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料14',name:'冷凍玉米塊（鮮味嘉）',price:215,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料15',name:'無蔥肥腸（佳味）',price:350,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料16',name:'滷豆干（央廚）',price:135,spec:1200,unit:'克',yld:0.9},
-    {id:'p火鍋料17',name:'煙燻豬頭皮（央廚）',price:320,spec:1200,unit:'克',yld:0.9},
-    {id:'p火鍋料18',name:'黃金鴨掌（央廚）',price:250,spec:1200,unit:'克',yld:0.9},
-    {id:'p火鍋料19',name:'醋溜木耳（央廚）',price:200,spec:1200,unit:'克',yld:0.9},
-    {id:'p火鍋料20',name:'鮮蝦抄手（央廚）',price:175,spec:1,unit:'包',yld:0.9},
-    {id:'p火鍋料21',name:'花雕雞腿肉（央廚）',price:235,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料22',name:'明太子蝦滑（央廚）',price:370,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料23',name:'脆薯（央廚）',price:315,spec:2000,unit:'克',yld:0.9},
-    {id:'p火鍋料24',name:'骰子雞丁（央廚）',price:160,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料25',name:'滷牛筋（央廚）',price:250,spec:1200,unit:'克',yld:0.9},
-    {id:'p火鍋料26',name:'滷牛肚（央廚）',price:250,spec:1200,unit:'克',yld:0.9},
-    {id:'p火鍋料27',name:'香脆雞丁（央廚）',price:195,spec:1000,unit:'克',yld:0.9},
-    {id:'p火鍋料28',name:'熟紅蟳（央廚）',price:45,spec:1,unit:'隻',yld:1},
-    {id:'p火鍋料29',name:'米腸（仲輝）',price:70,spec:600,unit:'克',yld:1},
-    {id:'p火鍋料30',name:'嫩肩牛肉捲（巴拉圭）',price:540,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料31',name:'前腿豬肉捲（加拿大）',price:400,spec:3000,unit:'克',yld:0.9},
-    {id:'p火鍋料32',name:'鳥蛋（市場）',price:120,spec:600,unit:'顆',yld:1},
+    {id:'p火鍋料1',name:'百頁豆腐（松強）',price:190,spec:3000,unit:'克'},
+    {id:'p火鍋料2',name:'非基改凍豆腐',price:200,spec:3000,unit:'克'},
+    {id:'p火鍋料3',name:'米血（洪牌）',price:220,spec:3000,unit:'克'},
+    {id:'p火鍋料4',name:'鑫鑫腸（卜蜂）',price:133,spec:1000,unit:'克'},
+    {id:'p火鍋料5',name:'甜不辣（蕭牌）',price:200,spec:3000,unit:'克'},
+    {id:'p火鍋料6',name:'黃金魚蛋（川島）',price:580,spec:3000,unit:'克'},
+    {id:'p火鍋料7',name:'純肉小貢丸（鮮味嘉）',price:510,spec:3000,unit:'克'},
+    {id:'p火鍋料8',name:'炸薯塊（麥肯）',price:285,spec:2000,unit:'克'},
+    {id:'p火鍋料9',name:'7mm薯條（佛瑞特）',price:150,spec:2000,unit:'克'},
+    {id:'p火鍋料10',name:'豆包（富源成）',price:480,spec:3000,unit:'克'},
+    {id:'p火鍋料11',name:'0.8mm水煮蓮藕片（晨欣）',price:90,spec:850,unit:'克'},
+    {id:'p火鍋料12',name:'冷凍青花菜（鮮味嘉）',price:62,spec:1000,unit:'克'},
+    {id:'p火鍋料13',name:'冷凍玉米筍（佳昱）',price:115,spec:1000,unit:'克'},
+    {id:'p火鍋料14',name:'冷凍玉米塊（鮮味嘉）',price:215,spec:3000,unit:'克'},
+    {id:'p火鍋料15',name:'無蔥肥腸（佳味）',price:350,spec:1000,unit:'克'},
+    {id:'p火鍋料16',name:'滷豆干（央廚）',price:135,spec:1200,unit:'克'},
+    {id:'p火鍋料17',name:'煙燻豬頭皮（央廚）',price:320,spec:1200,unit:'克'},
+    {id:'p火鍋料18',name:'黃金鴨掌（央廚）',price:250,spec:1200,unit:'克'},
+    {id:'p火鍋料19',name:'醋溜木耳（央廚）',price:200,spec:1200,unit:'克'},
+    {id:'p火鍋料20',name:'鮮蝦抄手（央廚）',price:175,spec:1,unit:'包'},
+    {id:'p火鍋料21',name:'花雕雞腿肉（央廚）',price:235,spec:1000,unit:'克'},
+    {id:'p火鍋料22',name:'明太子蝦滑（央廚）',price:370,spec:1000,unit:'克'},
+    {id:'p火鍋料23',name:'脆薯（央廚）',price:315,spec:2000,unit:'克'},
+    {id:'p火鍋料24',name:'骰子雞丁（央廚）',price:160,spec:1000,unit:'克'},
+    {id:'p火鍋料25',name:'滷牛筋（央廚）',price:250,spec:1200,unit:'克'},
+    {id:'p火鍋料26',name:'滷牛肚（央廚）',price:250,spec:1200,unit:'克'},
+    {id:'p火鍋料27',name:'香脆雞丁（央廚）',price:195,spec:1000,unit:'克'},
+    {id:'p火鍋料28',name:'熟紅蟳（央廚）',price:45,spec:1,unit:'隻'},
+    {id:'p火鍋料29',name:'米腸（仲輝）',price:70,spec:600,unit:'克'},
+    {id:'p火鍋料30',name:'嫩肩牛肉捲（巴拉圭）',price:540,spec:3000,unit:'克'},
+    {id:'p火鍋料31',name:'前腿豬肉捲（加拿大）',price:400,spec:3000,unit:'克'},
+    {id:'p火鍋料32',name:'鳥蛋（市場）',price:120,spec:600,unit:'克'},
+    {id:'p火鍋料33',name:'川香小酥肉（央廚）',price:240,spec:1000,unit:'克'},
   ],
   常溫食材:[
-    {id:'p常溫1',name:'王子麵（味王/40入）',price:200,spec:1,unit:'箱',yld:1},
-    {id:'p常溫2',name:'蒸煮麵（維力/10粒）',price:72.5,spec:1,unit:'袋',yld:1},
-    {id:'p常溫3',name:'鍋燒意麵（上智/50包）',price:6.9,spec:1,unit:'包',yld:1},
-    {id:'p常溫4',name:'豆皮捲（龍勝）',price:650,spec:600,unit:'袋',yld:1},
-    {id:'p常溫5',name:'角螺（龍勝）',price:320,spec:1800,unit:'袋',yld:1},
-    {id:'p常溫6',name:'皮蛋（顆）',price:13,spec:1,unit:'顆',yld:1},
-    {id:'p常溫7',name:'三好米',price:1530,spec:30000,unit:'袋',yld:0.9},
-    {id:'p常溫8',name:'油條（鼎上一品）',price:715,spec:3000,unit:'箱',yld:1},
-    {id:'p常溫9',name:'鴨血／盒（大大行）',price:26,spec:1,unit:'盒',yld:1},
+    {id:'p常溫1',name:'王子麵（味王/40入）',price:200,spec:1,unit:'箱'},
+    {id:'p常溫2',name:'蒸煮麵（維力/10粒）',price:72.5,spec:1,unit:'袋'},
+    {id:'p常溫3',name:'鍋燒意麵（上智/50包）',price:6.9,spec:1,unit:'包'},
+    {id:'p常溫4',name:'豆皮捲（龍勝）',price:130,spec:600,unit:'克'},
+    {id:'p常溫5',name:'角螺（龍勝）',price:320,spec:1800,unit:'袋'},
+    {id:'p常溫6',name:'皮蛋（顆）',price:13,spec:1,unit:'顆'},
+    {id:'p常溫7',name:'三好米',price:1530,spec:30000,unit:'袋'},
+    {id:'p常溫8',name:'油條（鼎上一品）',price:715,spec:3000,unit:'箱'},
+    {id:'p常溫9',name:'鴨血／盒（大大行）',price:26,spec:1,unit:'盒'},
   ],
   辛香料:[
-    {id:'p辛香1',name:'香菜（把）',price:25,spec:300,unit:'克',yld:0.9},
-    {id:'p辛香2',name:'九層塔（斤）',price:50,spec:600,unit:'克',yld:0.9},
-    {id:'p辛香3',name:'老薑（斤）',price:55,spec:600,unit:'克',yld:0.9},
-    {id:'p辛香4',name:'蒜仁（斤）',price:90,spec:600,unit:'克',yld:0.9},
+    {id:'p辛香1',name:'香菜（把）',price:25,spec:300,unit:'克'},
+    {id:'p辛香2',name:'九層塔（斤）',price:50,spec:600,unit:'克'},
+    {id:'p辛香3',name:'老薑（斤）',price:55,spec:600,unit:'克'},
+    {id:'p辛香4',name:'蒜仁（斤）',price:90,spec:600,unit:'克'},
   ],
   醬料:[
-    {id:'p醬料1',name:'貴夫人K7黑麻油（桶）',price:300,spec:3000,unit:'克',yld:1},
-    {id:'p醬料2',name:'蛤蠣粉（盒）',price:280,spec:1000,unit:'克',yld:1},
-    {id:'p醬料3',name:'福壽沙拉油18L',price:770,spec:1,unit:'桶',yld:1},
-    {id:'p醬料4',name:'福壽耐炸油18L',price:750,spec:1,unit:'桶',yld:1},
-    {id:'p醬料5',name:'味素（包）',price:72,spec:1000,unit:'克',yld:1},
-    {id:'p醬料6',name:'台鹽高級碘鹽（包）',price:15,spec:1000,unit:'克',yld:1},
-    {id:'p醬料7',name:'康寶雞粉（罐）',price:290,spec:1000,unit:'克',yld:1},
-    {id:'p醬料8',name:'冰糖（包）',price:145,spec:3000,unit:'克',yld:1},
-    {id:'p醬料9',name:'龜甲萬醬油（桶）',price:300,spec:5000,unit:'克',yld:1},
-    {id:'p醬料10',name:'金蘭油膏（桶）',price:240,spec:5000,unit:'克',yld:1},
-    {id:'p醬料11',name:'工研烏醋（桶）',price:190,spec:5000,unit:'克',yld:1},
-    {id:'p醬料12',name:'太白粉（袋）',price:22,spec:600,unit:'克',yld:1},
-    {id:'p醬料13',name:'甘草粉（盒）',price:210,spec:600,unit:'克',yld:1},
-    {id:'p醬料14',name:'正元堂川芎（包）',price:250,spec:600,unit:'克',yld:1},
-    {id:'p醬料15',name:'元春堂肉桂捲（包）',price:160,spec:600,unit:'克',yld:1},
-    {id:'p醬料16',name:'元春堂八角（包）',price:240,spec:600,unit:'克',yld:1},
-    {id:'p醬料17',name:'玉泉紹興酒（瓶）',price:190,spec:1,unit:'瓶',yld:1},
-    {id:'p醬料18',name:'郫縣豆瓣醬（包）',price:160,spec:600,unit:'克',yld:1},
-    {id:'p醬料19',name:'福壽辣椒油3L（桶）',price:300,spec:3000,unit:'克',yld:1},
-    {id:'p醬料20',name:'細粒特級砂糖（包）',price:42,spec:1000,unit:'克',yld:1},
-    {id:'p醬料21',name:'台灣白芝麻粒（1斤/包）',price:99,spec:1,unit:'包',yld:1},
-    {id:'p醬料22',name:'香油500ml（瓶）',price:87,spec:1,unit:'瓶',yld:1},
-    {id:'p醬料23',name:'肉燥／包（央廚）',price:155,spec:1200,unit:'克',yld:1},
-    {id:'p醬料24',name:'特製辣椒醬／包（央廚）',price:200,spec:600,unit:'克',yld:1},
-    {id:'p醬料25',name:'麻辣醬／包（央廚）',price:400,spec:1000,unit:'克',yld:1},
-    {id:'p醬料26',name:'麻辣炒醬／包／1kg（央廚）',price:316.67,spec:1,unit:'包',yld:1},
-    {id:'p醬料27',name:'麻辣粉／包／1kg（央廚）',price:700,spec:1,unit:'包',yld:1},
-    {id:'p醬料28',name:'日本炊飯酵素／罐（央廚）',price:2000,spec:1000,unit:'克',yld:1},
-    {id:'p醬料29',name:'乾辣椒／0.6kg（央廚）',price:300,spec:1,unit:'包',yld:1},
-    {id:'p醬料30',name:'麻辣粉／包／1.2kg（央廚）',price:155,spec:1,unit:'包',yld:1},
-    {id:'p醬料31',name:'可果美番茄醬（桶）',price:195,spec:3150,unit:'克',yld:1},
+    {id:'p醬料1',name:'貴夫人K7黑麻油（桶）',price:300,spec:3000,unit:'克'},
+    {id:'p醬料2',name:'蛤蠣粉（盒）',price:280,spec:1000,unit:'克'},
+    {id:'p醬料3',name:'福壽沙拉油18L',price:770,spec:1,unit:'桶'},
+    {id:'p醬料4',name:'福壽耐炸油18L',price:750,spec:1,unit:'桶'},
+    {id:'p醬料5',name:'味素（包）',price:72,spec:1000,unit:'克'},
+    {id:'p醬料6',name:'台鹽高級碘鹽（包）',price:15,spec:1000,unit:'克'},
+    {id:'p醬料7',name:'康寶雞粉（罐）',price:290,spec:1000,unit:'克'},
+    {id:'p醬料8',name:'冰糖（包）',price:145,spec:3000,unit:'克'},
+    {id:'p醬料9',name:'龜甲萬醬油（桶）',price:300,spec:5000,unit:'克'},
+    {id:'p醬料10',name:'金蘭油膏（桶）',price:240,spec:5000,unit:'克'},
+    {id:'p醬料11',name:'工研烏醋（桶）',price:190,spec:5000,unit:'克'},
+    {id:'p醬料12',name:'太白粉（袋）',price:22,spec:600,unit:'克'},
+    {id:'p醬料13',name:'甘草粉（盒）',price:210,spec:600,unit:'克'},
+    {id:'p醬料14',name:'正元堂川芎（包）',price:250,spec:600,unit:'克'},
+    {id:'p醬料15',name:'元春堂肉桂捲（包）',price:160,spec:600,unit:'克'},
+    {id:'p醬料16',name:'元春堂八角（包）',price:240,spec:600,unit:'克'},
+    {id:'p醬料17',name:'玉泉紹興酒（瓶）',price:190,spec:1,unit:'瓶'},
+    {id:'p醬料18',name:'郫縣豆瓣醬（包）',price:160,spec:600,unit:'克'},
+    {id:'p醬料19',name:'福壽辣椒油3L（桶）',price:300,spec:3000,unit:'克'},
+    {id:'p醬料20',name:'細粒特級砂糖（包）',price:42,spec:1000,unit:'克'},
+    {id:'p醬料21',name:'台灣白芝麻粒（1斤/包）',price:99,spec:1,unit:'包'},
+    {id:'p醬料22',name:'香油500ml（瓶）',price:87,spec:1,unit:'瓶'},
+    {id:'p醬料23',name:'肉燥／包（央廚）',price:155,spec:1200,unit:'克'},
+    {id:'p醬料24',name:'特製辣椒醬／包（央廚）',price:200,spec:600,unit:'克'},
+    {id:'p醬料25',name:'麻辣醬／包（央廚）',price:400,spec:1000,unit:'克'},
+    {id:'p醬料26',name:'麻辣炒醬／包／1kg（央廚）',price:316.67,spec:1,unit:'包'},
+    {id:'p醬料27',name:'麻辣粉／包／1kg（央廚）',price:700,spec:1,unit:'包'},
+    {id:'p醬料28',name:'日本炊飯酵素／罐（央廚）',price:2000,spec:1000,unit:'克'},
+    {id:'p醬料29',name:'乾辣椒／0.6kg（央廚）',price:300,spec:1,unit:'包'},
+    {id:'p醬料31',name:'可果美番茄醬（桶）',price:195,spec:3150,unit:'克'},
   ],
   飲料冰品:[
-    {id:'p飲料1',name:'酸梅湯／罐（央廚）',price:350,spec:1,unit:'罐',yld:1},
-    {id:'p飲料2',name:'綠茶／袋／1.8kg（央廚）',price:700,spec:36,unit:'個',yld:1},
-    {id:'p飲料3',name:'Niseko（抹茶）／桶',price:1100.4,spec:1,unit:'桶',yld:1},
-    {id:'p飲料4',name:'Niseko（薄荷巧克力）／桶',price:1100.4,spec:1,unit:'桶',yld:1},
-    {id:'p飲料5',name:'Niseko（芒果）／桶',price:1100.4,spec:1,unit:'桶',yld:1},
-    {id:'p飲料6',name:'Poki（芒果）／桶',price:649.95,spec:1,unit:'桶',yld:1},
-    {id:'p飲料7',name:'Poki（海鹽檸檬）／桶',price:649.95,spec:1,unit:'桶',yld:1},
-    {id:'p飲料8',name:'Poki（黑糖珍珠）／桶',price:649.95,spec:1,unit:'桶',yld:1},
-    {id:'p飲料9',name:'Poki（香草）／桶',price:649.95,spec:1,unit:'桶',yld:1},
-    {id:'p飲料10',name:'Poki（花生巧酥）／桶',price:649.95,spec:1,unit:'桶',yld:1},
-    {id:'p飲料11',name:'Poki（草莓牛奶）／桶',price:649.95,spec:1,unit:'桶',yld:1},
-    {id:'p飲料12',name:'茉莉綠茶濃縮汁／罐',price:250,spec:1,unit:'罐',yld:1},
-    {id:'p飲料13',name:'冬瓜檸檬濃縮糖漿／罐',price:480,spec:1,unit:'罐',yld:1},
+    {id:'p飲料1',name:'酸梅湯／罐（央廚）',price:350,spec:1,unit:'罐'},
+    {id:'p飲料2',name:'綠茶／袋／1.8kg（央廚）',price:700,spec:36,unit:'個'},
+    {id:'p飲料3',name:'Niseko（抹茶）／桶',price:1100.4,spec:1,unit:'桶'},
+    {id:'p飲料4',name:'Niseko（薄荷巧克力）／桶',price:1100.4,spec:1,unit:'桶'},
+    {id:'p飲料5',name:'Niseko（芒果）／桶',price:1100.4,spec:1,unit:'桶'},
+    {id:'p飲料6',name:'Poki（芒果）／桶',price:649.95,spec:1,unit:'桶'},
+    {id:'p飲料7',name:'Poki（海鹽檸檬）／桶',price:649.95,spec:1,unit:'桶'},
+    {id:'p飲料8',name:'Poki（黑糖珍珠）／桶',price:649.95,spec:1,unit:'桶'},
+    {id:'p飲料9',name:'Poki（香草）／桶',price:649.95,spec:1,unit:'桶'},
+    {id:'p飲料10',name:'Poki（花生巧酥）／桶',price:649.95,spec:1,unit:'桶'},
+    {id:'p飲料11',name:'Poki（草莓牛奶）／桶',price:649.95,spec:1,unit:'桶'},
+    {id:'p飲料12',name:'茉莉綠茶濃縮汁／罐',price:250,spec:1,unit:'罐'},
+    {id:'p飲料13',name:'冬瓜檸檬濃縮糖漿／罐',price:480,spec:1,unit:'罐'},
   ],
   包材:[
-    {id:'p包材1',name:'902扁碗凸蓋／條（50入）',price:66.67,spec:1,unit:'條',yld:1},
-    {id:'p包材2',name:'818透明單支包吸管／包（1公斤）',price:92,spec:1,unit:'包',yld:1},
-    {id:'p包材3',name:'5.0opp空白包裝竹筷／包（100雙）',price:23.33,spec:1,unit:'包',yld:1},
-    {id:'p包材4',name:'180小菜盒(上蓋)／條（50入）',price:41,spec:1,unit:'條',yld:1},
-    {id:'p包材5',name:'180小菜盒(下盒)／條（50入）',price:47,spec:1,unit:'條',yld:1},
-    {id:'p包材6',name:'3*5pp袋',price:45,spec:1,unit:'包',yld:1},
-    {id:'p包材7',name:'4*6pp袋',price:45,spec:1,unit:'包',yld:1},
-    {id:'p包材8',name:'6*7pp袋',price:45,spec:1,unit:'包',yld:1},
-    {id:'p包材9',name:'1斤提袋',price:40,spec:1,unit:'包',yld:1},
-    {id:'p包材10',name:'3斤提袋',price:40,spec:1,unit:'包',yld:1},
-    {id:'p包材11',name:'5斤提袋',price:40,spec:1,unit:'包',yld:1},
-    {id:'p包材12',name:'半斤耐熱袋',price:45,spec:1,unit:'包',yld:1},
-    {id:'p包材13',name:'1斤耐熱袋',price:30,spec:1,unit:'包',yld:1},
-    {id:'p包材14',name:'260湯蓋／條（50入）',price:16,spec:1,unit:'條',yld:1},
-    {id:'p包材15',name:'260全白湯碗／條（50入）',price:35.75,spec:1,unit:'條',yld:1},
-    {id:'p包材16',name:'390湯蓋／條（50入）',price:22,spec:1,unit:'條',yld:1},
-    {id:'p包材17',name:'390全白湯碗／條（50入）',price:45.25,spec:1,unit:'條',yld:1},
-    {id:'p包材18',name:'205紙杯/條（2000入）',price:1250,spec:1,unit:'條',yld:1},
-    {id:'p包材19',name:'布丁小湯匙（100支）',price:30,spec:1,unit:'包',yld:1},
-    {id:'p包材20',name:'LOGO 制服（S）',price:400,spec:1,unit:'件',yld:1},
-    {id:'p包材21',name:'LOGO 制服（M）',price:400,spec:1,unit:'件',yld:1},
-    {id:'p包材22',name:'LOGO 制服（L）',price:400,spec:1,unit:'件',yld:1},
-    {id:'p包材23',name:'LOGO 602碗／條',price:141.67,spec:1,unit:'條',yld:1},
-    {id:'p包材24',name:'LOGO 902碗／條',price:154.17,spec:1,unit:'條',yld:1},
-    {id:'p包材25',name:'LOGO 飲料杯／條',price:87.5,spec:1,unit:'條',yld:1},
-    {id:'p包材26',name:'LOGO 封口膜／入',price:990,spec:1,unit:'入',yld:1},
-    {id:'p包材27',name:'LOGO 柳木托盤／個',price:280,spec:1,unit:'個',yld:1},
-    {id:'p包材28',name:'感熱紙／捲（80*80）',price:28.33,spec:1,unit:'捲',yld:1},
-    {id:'p包材29',name:'感熱貼紙／捲（40*25）',price:28.9,spec:1,unit:'捲',yld:1},
-    {id:'p包材30',name:'23cm不銹鋼干鍋組／組',price:699,spec:1,unit:'組',yld:1},
+    {id:'p包材1',name:'902扁碗凸蓋／條（50入）',price:66.67,spec:1,unit:'條'},
+    {id:'p包材2',name:'818透明單支包吸管／包（1公斤）',price:92,spec:1,unit:'包'},
+    {id:'p包材3',name:'5.0opp空白包裝竹筷／包（100雙）',price:23.33,spec:1,unit:'包'},
+    {id:'p包材4',name:'180小菜盒(上蓋)／條（50入）',price:41,spec:1,unit:'條'},
+    {id:'p包材5',name:'180小菜盒(下盒)／條（50入）',price:47,spec:1,unit:'條'},
+    {id:'p包材6',name:'3*5pp袋',price:45,spec:1,unit:'包'},
+    {id:'p包材7',name:'4*6pp袋',price:45,spec:1,unit:'包'},
+    {id:'p包材8',name:'6*7pp袋',price:45,spec:1,unit:'包'},
+    {id:'p包材9',name:'1斤提袋',price:40,spec:1,unit:'包'},
+    {id:'p包材10',name:'3斤提袋',price:40,spec:1,unit:'包'},
+    {id:'p包材11',name:'5斤提袋',price:40,spec:1,unit:'包'},
+    {id:'p包材12',name:'半斤耐熱袋',price:45,spec:1,unit:'包'},
+    {id:'p包材13',name:'1斤耐熱袋',price:30,spec:1,unit:'包'},
+    {id:'p包材14',name:'260湯蓋／條（50入）',price:16,spec:1,unit:'條'},
+    {id:'p包材15',name:'260全白湯碗／條（50入）',price:35.75,spec:1,unit:'條'},
+    {id:'p包材16',name:'390湯蓋／條（50入）',price:22,spec:1,unit:'條'},
+    {id:'p包材17',name:'390全白湯碗／條（50入）',price:45.25,spec:1,unit:'條'},
+    {id:'p包材18',name:'205紙杯/條（2000入）',price:1250,spec:1,unit:'條'},
+    {id:'p包材19',name:'布丁小湯匙（100支）',price:30,spec:1,unit:'包'},
+    {id:'p包材20',name:'LOGO 制服（S）',price:400,spec:1,unit:'件'},
+    {id:'p包材21',name:'LOGO 制服（M）',price:400,spec:1,unit:'件'},
+    {id:'p包材22',name:'LOGO 制服（L）',price:400,spec:1,unit:'件'},
+    {id:'p包材23',name:'LOGO 602碗／條',price:141.67,spec:1,unit:'條'},
+    {id:'p包材24',name:'LOGO 902碗／條',price:154.17,spec:1,unit:'條'},
+    {id:'p包材25',name:'LOGO 飲料杯／條',price:87.5,spec:1,unit:'條'},
+    {id:'p包材26',name:'LOGO 封口膜／入',price:990,spec:1,unit:'入'},
+    {id:'p包材27',name:'LOGO 柳木托盤／個',price:280,spec:1,unit:'個'},
+    {id:'p包材28',name:'感熱紙／捲（80*80）',price:28.33,spec:1,unit:'捲'},
+    {id:'p包材29',name:'感熱貼紙／捲（40*25）',price:28.9,spec:1,unit:'捲'},
+    {id:'p包材30',name:'23cm不銹鋼干鍋組／組',price:699,spec:1,unit:'組'},
   ],
   清潔用品:[
-    {id:'p清潔1',name:'洗碗精／桶（3.5kg）',price:40,spec:1,unit:'桶',yld:1},
-    {id:'p清潔2',name:'漂白水／桶（3.5kg）',price:40,spec:1,unit:'桶',yld:1},
-    {id:'p清潔3',name:'酒精／桶（4000cc）',price:260,spec:1,unit:'桶',yld:1},
-    {id:'p清潔4',name:'小抽衛生紙／包',price:5,spec:1,unit:'包',yld:1},
-    {id:'p清潔5',name:'擦手紙／包',price:21,spec:1,unit:'包',yld:1},
-    {id:'p清潔6',name:'南亞保鮮膜／捲',price:29,spec:1,unit:'捲',yld:1},
-    {id:'p清潔7',name:'菜瓜布／個',price:20,spec:1,unit:'個',yld:1},
-    {id:'p清潔8',name:'除油清潔劑／桶（1加侖）',price:280,spec:1,unit:'桶',yld:1},
-    {id:'p清潔9',name:'洗衣粉／袋',price:270,spec:1,unit:'袋',yld:1},
-    {id:'p清潔10',name:'無粉手套／盒',price:99,spec:1,unit:'盒',yld:1},
-    {id:'p清潔11',name:'手扒雞手套／盒',price:25,spec:1,unit:'盒',yld:1},
-    {id:'p清潔12',name:'束繩／包',price:35,spec:1,unit:'包',yld:1},
-    {id:'p清潔13',name:'地板清潔劑／桶',price:79,spec:1,unit:'桶',yld:1},
-    {id:'p清潔14',name:'廁所清潔劑／桶',price:105,spec:1,unit:'桶',yld:1},
-    {id:'p清潔15',name:'黑色垃圾袋／包（超大）',price:104,spec:1,unit:'包',yld:1},
-    {id:'p清潔16',name:'黑色拉繩平底袋／捲（特）',price:42,spec:1,unit:'捲',yld:1},
-    {id:'p清潔17',name:'小垃圾袋／包',price:11,spec:1,unit:'包',yld:1},
-    {id:'p清潔18',name:'洗手乳／罐',price:250,spec:1,unit:'罐',yld:1},
+    {id:'p清潔1',name:'洗碗精／桶（3.5kg）',price:40,spec:1,unit:'桶'},
+    {id:'p清潔2',name:'漂白水／桶（3.5kg）',price:40,spec:1,unit:'桶'},
+    {id:'p清潔3',name:'酒精／桶（4000cc）',price:260,spec:1,unit:'桶'},
+    {id:'p清潔4',name:'小抽衛生紙／包',price:5,spec:1,unit:'包'},
+    {id:'p清潔5',name:'擦手紙／包',price:21,spec:1,unit:'包'},
+    {id:'p清潔6',name:'南亞保鮮膜／捲',price:29,spec:1,unit:'捲'},
+    {id:'p清潔7',name:'菜瓜布／個',price:20,spec:1,unit:'個'},
+    {id:'p清潔8',name:'除油清潔劑／桶（1加侖）',price:280,spec:1,unit:'桶'},
+    {id:'p清潔9',name:'洗衣粉／袋',price:270,spec:1,unit:'袋'},
+    {id:'p清潔10',name:'無粉手套／盒',price:99,spec:1,unit:'盒'},
+    {id:'p清潔11',name:'手扒雞手套／盒',price:25,spec:1,unit:'盒'},
+    {id:'p清潔12',name:'束繩／包',price:35,spec:1,unit:'包'},
+    {id:'p清潔13',name:'地板清潔劑／桶',price:79,spec:1,unit:'桶'},
+    {id:'p清潔14',name:'廁所清潔劑／桶',price:105,spec:1,unit:'桶'},
+    {id:'p清潔15',name:'黑色垃圾袋／包（超大）',price:104,spec:1,unit:'包'},
+    {id:'p清潔16',name:'黑色拉繩平底袋／捲（特）',price:42,spec:1,unit:'捲'},
+    {id:'p清潔17',name:'小垃圾袋／包',price:11,spec:1,unit:'包'},
+    {id:'p清潔18',name:'洗手乳／罐',price:250,spec:1,unit:'罐'},
   ],
 };
 const DEF_CATS = Object.keys(DEF_PRODUCTS);
@@ -509,7 +513,7 @@ function save(){localStorage.setItem('mala_v5',JSON.stringify(S));}
 
 // ── 計算 ──
 function pgForProduct(p){
-  const eff=p.spec*(p.yld||1);
+  const eff=p.spec;
   return eff>0?p.price/eff:p.price;
 }
 function itemValue(item,mode){
@@ -586,14 +590,25 @@ function makeInvSec(mode,cat,items){
   // header
   const hdr=document.createElement('div');
   hdr.className='sec-hdr';
-  hdr.innerHTML=`<input class="sec-title-inp" value="【${cat}】" onblur="renameCat('${mode}','${cat}',this)" onfocus="this.select()"><div class="sec-total" id="${mode}-ct-${cat}">${fmt(total)}</div><button class="sec-del" onclick="askDelCat('${mode}','${cat}')">✕</button>`;
+  hdr.innerHTML=`<button class="sec-toggle" id="tog-${mode}-${cat}" onclick="toggleInvSec('${mode}','${cat}')">▼</button><input class="sec-title-inp" value="【${cat}】" onblur="renameCat('${mode}','${cat}',this)" onfocus="this.select()"><div class="sec-total" id="${mode}-ct-${cat}">${fmt(total)}</div><button class="sec-del" onclick="askDelCat('${mode}','${cat}')">✕</button>`;
   card.appendChild(hdr);
-  items.forEach(item=>card.appendChild(makeInvRow(mode,cat,item)));
+  // collapsible body
+  const body=document.createElement('div');
+  body.className='sec-body';
+  body.id=`body-${mode}-${cat}`;
+  items.forEach(item=>body.appendChild(makeInvRow(mode,cat,item)));
   // add item row
   const ar=document.createElement('div');
   ar.className='add-item-row';
   ar.innerHTML=makeProductSelect(mode,cat);
-  card.appendChild(ar);
+  body.appendChild(ar);
+  card.appendChild(body);
+  // set initial max-height after append (use a large enough value)
+  requestAnimationFrame(()=>{
+    if(!body.classList.contains('collapsed')){
+      body.style.maxHeight=body.scrollHeight+'px';
+    }
+  });
   sec.appendChild(card);
   return sec;
 }
@@ -690,14 +705,41 @@ function refreshInvCatTotal(mode,cat){
   const t=items.reduce((s,i)=>s+itemValue(i,mode),0);
   const el=document.getElementById(`${mode}-ct-${cat}`);
   if(el)el.textContent=fmt(t);
+  // keep maxHeight in sync so collapse/expand stays accurate
+  const body=document.getElementById(`body-${mode}-${cat}`);
+  if(body && !body.classList.contains('collapsed')) body.style.maxHeight=body.scrollHeight+'px';
+}
+
+function toggleInvSec(mode,cat){
+  const body=document.getElementById(`body-${mode}-${cat}`);
+  const tog=document.getElementById(`tog-${mode}-${cat}`);
+  if(!body)return;
+  if(body.classList.contains('collapsed')){
+    body.classList.remove('collapsed');
+    body.style.maxHeight=body.scrollHeight+'px';
+    tog.classList.remove('collapsed');
+  } else {
+    body.style.maxHeight=body.scrollHeight+'px';
+    requestAnimationFrame(()=>{ body.style.maxHeight=body.scrollHeight+'px';
+      requestAnimationFrame(()=>{ body.classList.add('collapsed'); tog.classList.add('collapsed'); });
+    });
+  }
 }
 
 function reRenderInvSec(mode,cat){
   const items=mode==='cart'?S.cartItems[cat]:S.stockItems[cat];
   const old=document.getElementById(`sec-${mode}-${cat}`);
   if(!old)return;
+  // preserve collapsed state
+  const wasCollapsed=!!document.getElementById(`body-${mode}-${cat}`)?.classList.contains('collapsed');
   const newSec=makeInvSec(mode,cat,items||[]);
   old.replaceWith(newSec.querySelector('.sec-card'));
+  if(wasCollapsed){
+    const body=document.getElementById(`body-${mode}-${cat}`);
+    const tog=document.getElementById(`tog-${mode}-${cat}`);
+    if(body){body.classList.add('collapsed');body.style.maxHeight='0';}
+    if(tog)tog.classList.add('collapsed');
+  }
 }
 
 function addCat(mode){
@@ -813,7 +855,6 @@ function renderPrice(){
           <div class="field" style="max-width:80px"><label>價格(元)</label><input type="number" inputmode="decimal" placeholder="0" id="pa-price-${cat}"></div>
           <div class="field" style="max-width:72px"><label>規格數量</label><input type="number" inputmode="decimal" placeholder="1" id="pa-spec-${cat}"></div>
           <div class="field" style="max-width:60px"><label>單位</label><input type="text" placeholder="克" id="pa-unit-${cat}"></div>
-          <div class="field" style="max-width:60px"><label>製成率</label><input type="number" inputmode="decimal" placeholder="1" step="0.01" max="1" id="pa-yld-${cat}"></div>
         </div>
         <div><button class="btn btn-price btn-sm" onclick="pAdd('${cat}')">＋ 新增</button></div>
       </div>`;
@@ -823,38 +864,79 @@ function renderPrice(){
   // 新增分類
   const bar=document.createElement('div');
   bar.className='add-cat-bar';
-  bar.innerHTML='<input class="add-cat-inp" type="text" placeholder="新商品類別名稱" id="price-new-cat"><button class="btn btn-price btn-sm" onclick="addPriceCat()">＋ 新增類別</button>';
+  bar.innerHTML='<input class="add-cat-inp" type="text" placeholder="新商品類別名稱" id="price-new-cat"><button class="btn btn-price btn-sm" onclick="addPriceCat()">＋ 新增類別</button><button class="btn btn-sm" style="background:var(--red);color:#fff;margin-left:8px" onclick="resetProducts()">🔄 重置商品資料</button>';
   page.appendChild(bar);
+}
+
+// ── 同步攤車/現場與商品管理 ──
+// 移除攤車與現場中已不存在於商品管理的品項
+function purgeOrphanInvItems(){
+  const allPids=new Set(allProducts().map(p=>p.id));
+  let changed=false;
+  ['cart','stock'].forEach(mode=>{
+    const ref=mode==='cart'?S.cartItems:S.stockItems;
+    const cats=mode==='cart'?S.cartCats:S.stockCats;
+    cats.forEach(c=>{
+      if(!ref[c])return;
+      const before=ref[c].length;
+      ref[c]=ref[c].filter(i=>allPids.has(i.pid));
+      if(ref[c].length!==before)changed=true;
+    });
+  });
+  return changed;
+}
+// 將商品管理的 name/spec 同步回攤車/現場的 item 紀錄
+function syncInvItemMeta(){
+  ['cart','stock'].forEach(mode=>{
+    const ref=mode==='cart'?S.cartItems:S.stockItems;
+    const cats=mode==='cart'?S.cartCats:S.stockCats;
+    cats.forEach(c=>{
+      (ref[c]||[]).forEach(item=>{
+        const p=findProduct(item.pid);
+        if(p){item.name=p.name;item.spec=p.spec;}
+      });
+    });
+  });
 }
 
 function pUpd(cat,idx,field,val){
   const items=S.products[cat];if(!items||!items[idx])return;
   if(field==='name'||field==='unit')items[idx][field]=val;
   else items[idx][field]=parseFloat(val)||0;
+  // 同步攤車/現場 item 的名稱與規格
+  syncInvItemMeta();
   save();
   const el=document.getElementById(`ppg-${cat}-${idx}`);
   if(el)el.textContent=fmtpg(pgForProduct(items[idx]));
+  renderCart();renderStock();
   updateHeaderTotal();
 }
 function pDel(cat,idx){
-  if(!confirm('確定刪除此商品？刪除後攤車與現場庫存中同品項的盤點資料將失去成本參照。'))return;
+  if(!confirm('確定刪除此商品？攤車與現場庫存中同品項的盤點資料將一併自動移除。'))return;
   S.products[cat].splice(idx,1);
-  save();renderPrice();showSnack('已刪除');
+  purgeOrphanInvItems();
+  save();renderPrice();renderCart();renderStock();updateHeaderTotal();showSnack('已刪除，庫存已同步');
 }
 function pAdd(cat){
   const name=document.getElementById(`pa-name-${cat}`).value.trim();
   const price=parseFloat(document.getElementById(`pa-price-${cat}`).value)||0;
   const spec=parseFloat(document.getElementById(`pa-spec-${cat}`).value)||1;
   const unit=document.getElementById(`pa-unit-${cat}`).value.trim()||'克';
-  const yld=parseFloat(document.getElementById(`pa-yld-${cat}`).value)||1;
   if(!name){showSnack('請填入品名');return;}
   if(!S.products[cat])S.products[cat]=[];
   const newPid=uid();
-  S.products[cat].push({id:newPid,name,price,spec,unit,yld});
+  S.products[cat].push({id:newPid,name,price,spec,unit});
   // 自動套用預設異常通知：高於 2000 元
   if(!S.thresholds)S.thresholds={};
   if(!S.thresholds[newPid])S.thresholds[newPid]={low:null,high:2000};
-  save();renderPrice();showSnack('已新增：'+name);
+  save();renderPrice();renderCart();renderStock();showSnack('已新增：'+name);
+}
+function resetProducts(){
+  if(!confirm('重置商品資料將會以程式預設值覆蓋目前商品管理的品項與價格，並同步清除攤車與現場中已不存在的品項，確定繼續？'))return;
+  S.products=JSON.parse(JSON.stringify(DEF.products));
+  syncInvItemMeta();
+  purgeOrphanInvItems();
+  save();renderPrice();renderCart();renderStock();showSnack('商品資料已重置，庫存已同步');
 }
 function addPriceCat(){
   const inp=document.getElementById('price-new-cat');
@@ -1004,15 +1086,29 @@ function renderPrint(){
   }
   body.parentNode.insertBefore(sumBar,body);
 
-  function buildSec(label,cats,modeKey){
+  // 合併攤車+現場，按分類彙整所有品項（攤車庫存金額 + 現場庫存金額）
+  function buildCombinedSec(){
+    // 收集所有分類（攤車＋現場，去重）
+    const allCats=[...new Set([...S.cartCats,...S.stockCats])];
     let total=0;let html='';
-    cats.forEach(cat=>{
-      const items=modeKey==='cart'?(S.cartItems[cat]||[]):(S.stockItems[cat]||[]);
+    allCats.forEach(cat=>{
+      // 用 pid 為 key，合併兩邊同一品項的金額
+      const pidMap={};
+      (S.cartItems[cat]||[]).forEach(item=>{
+        const v=itemValue(item,'cart');
+        if(!pidMap[item.pid])pidMap[item.pid]={name:item.name,pid:item.pid,cartVal:0,stockVal:0};
+        pidMap[item.pid].cartVal+=v;
+      });
+      (S.stockItems[cat]||[]).forEach(item=>{
+        const v=itemValue(item,'stock');
+        if(!pidMap[item.pid])pidMap[item.pid]={name:item.name,pid:item.pid,cartVal:0,stockVal:0};
+        pidMap[item.pid].stockVal+=v;
+      });
       let ct=0;let rows='';
-      items.forEach(item=>{
-        const v=itemValue(item,modeKey);
+      Object.values(pidMap).forEach(entry=>{
+        const v=entry.cartVal+entry.stockVal;
         if(v>0){
-          const t=getThresh(item.pid);
+          const t=getThresh(entry.pid);
           let badge='';let rowCls='sum-row';
           if(t){
             if(t.low!==null && v<t.low){
@@ -1023,7 +1119,12 @@ function renderPrint(){
               rowCls='sum-row has-alert-high';
             }
           }
-          rows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${item.name}</span><div style="display:flex;align-items:center;gap:6px">${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
+          // 顯示細項：攤車$xx + 現場$xx
+          let detail='';
+          if(entry.cartVal>0&&entry.stockVal>0){
+            detail=`<span style="font-size:10px;color:var(--text3)">攤車${fmt(entry.cartVal)}＋現場${fmt(entry.stockVal)}</span>`;
+          }
+          rows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${entry.name}</span><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">${detail}${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
           ct+=v;
         }
       });
@@ -1032,11 +1133,10 @@ function renderPrint(){
     grand+=total;
     const wrap=document.createElement('div');wrap.className='sec-wrap';
     const card=document.createElement('div');card.className='sec-card';
-    card.innerHTML=`<div class="sec-hdr"><input class="sec-title-inp" value="${label}" readonly style="pointer-events:none"><div class="sec-total">${fmt(total)}</div></div>${html||'<div class="empty-hint">尚無資料</div>'}`;
+    card.innerHTML=`<div class="sec-hdr"><input class="sec-title-inp" value="📋 庫存彙整（攤車＋現場）" readonly style="pointer-events:none"><div class="sec-total">${fmt(total)}</div></div>${html||'<div class="empty-hint">尚無資料</div>'}`;
     wrap.appendChild(card);body.appendChild(wrap);
   }
-  buildSec('🛒 攤車庫存',S.cartCats,'cart');
-  buildSec('📦 現場庫存',S.stockCats,'stock');
+  buildCombinedSec();
 
   // ── 未盤點品項區塊 ──
   const missingAlerts=alerts.filter(a=>a.type==='missing');
