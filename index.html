@@ -1119,48 +1119,62 @@ function renderPrint(){
 
   // 合併攤車+現場，按分類彙整所有品項（攤車庫存金額 + 現場庫存金額）
   function buildCombinedSec(){
-    // 收集所有分類（攤車＋現場，去重）
-    const allCats=[...new Set([...S.cartCats,...S.stockCats])];
-    let total=0;let html='';
-    allCats.forEach(cat=>{
-      // 用 pid 為 key，合併兩邊同一品項的金額
-      const pidMap={};
+    // ── 第一步：全域 pidMap，跨所有分類合併同一商品的金額 ──
+    const globalPidMap={};
+    S.cartCats.forEach(cat=>{
       (S.cartItems[cat]||[]).forEach(item=>{
         const v=itemValue(item,'cart');
-        if(!pidMap[item.pid])pidMap[item.pid]={name:item.name,pid:item.pid,cartVal:0,stockVal:0};
-        pidMap[item.pid].cartVal+=v;
+        if(!globalPidMap[item.pid])globalPidMap[item.pid]={name:item.name,pid:item.pid,total:0};
+        globalPidMap[item.pid].total+=v;
       });
+    });
+    S.stockCats.forEach(cat=>{
       (S.stockItems[cat]||[]).forEach(item=>{
         const v=itemValue(item,'stock');
-        if(!pidMap[item.pid])pidMap[item.pid]={name:item.name,pid:item.pid,cartVal:0,stockVal:0};
-        pidMap[item.pid].stockVal+=v;
+        if(!globalPidMap[item.pid])globalPidMap[item.pid]={name:item.name,pid:item.pid,total:0};
+        globalPidMap[item.pid].total+=v;
       });
+    });
+    // ── 第二步：按商品管理分類順序顯示，每個 pid 只出現一次 ──
+    const shownPids=new Set();
+    const productCats=Object.keys(S.products);
+    let total=0;let html='';
+    productCats.forEach(cat=>{
+      const items=(S.products[cat]||[]);
       let ct=0;let rows='';
-      Object.values(pidMap).forEach(entry=>{
-        const v=entry.cartVal+entry.stockVal;
-        if(v>0){
-          const t=getThresh(entry.pid);
-          let badge='';let rowCls='sum-row';
-          if(t){
-            if(t.low!==null && v<t.low){
-              badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;
-              rowCls='sum-row has-alert-low';
-            } else if(t.high!==null && v>t.high){
-              badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;
-              rowCls='sum-row has-alert-high';
-            }
-          }
-          // 顯示細項：攤車$xx + 現場$xx
-          let detail='';
-          if(entry.cartVal>0&&entry.stockVal>0){
-            detail=`<span style="font-size:10px;color:var(--text3)">攤車${fmt(entry.cartVal)}＋現場${fmt(entry.stockVal)}</span>`;
-          }
-          rows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${entry.name}</span><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">${detail}${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
-          ct+=v;
+      items.forEach(p=>{
+        if(shownPids.has(p.id))return;
+        const entry=globalPidMap[p.id];
+        if(!entry||entry.total<=0)return;
+        shownPids.add(p.id);
+        const v=entry.total;
+        const t=getThresh(p.id);
+        let badge='';let rowCls='sum-row';
+        if(t){
+          if(t.low!==null && v<t.low){badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;rowCls='sum-row has-alert-low';}
+          else if(t.high!==null && v>t.high){badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;rowCls='sum-row has-alert-high';}
         }
+        rows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${entry.name}</span><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
+        ct+=v;
       });
       if(ct>0){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【${cat}】小計</span><span class="sum-row-val hi">${fmt(ct)}</span></div>${rows}`;total+=ct;}
     });
+    // 補上不在商品管理分類的品項（新建自訂分類）
+    let extraCt=0;let extraRows='';
+    Object.values(globalPidMap).forEach(entry=>{
+      if(shownPids.has(entry.pid)||entry.total<=0)return;
+      shownPids.add(entry.pid);
+      const v=entry.total;
+      const t=getThresh(entry.pid);
+      let badge='';let rowCls='sum-row';
+      if(t){
+        if(t.low!==null && v<t.low){badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;rowCls='sum-row has-alert-low';}
+        else if(t.high!==null && v>t.high){badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;rowCls='sum-row has-alert-high';}
+      }
+      extraRows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${entry.name}</span><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
+      extraCt+=v;
+    });
+    if(extraCt>0){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【其他】小計</span><span class="sum-row-val hi">${fmt(extraCt)}</span></div>${extraRows}`;total+=extraCt;}
     grand+=total;
     const wrap=document.createElement('div');wrap.className='sec-wrap';
     const card=document.createElement('div');card.className='sec-card';
@@ -1198,7 +1212,7 @@ function renderPrint(){
   document.getElementById('sub-food').textContent=fmt(foodTotal);
   document.getElementById('sub-pack').textContent=fmt(packTotal);
 
-  document.getElementById('grand').textContent=fmt(grand);
+  document.getElementById('grand').textContent=fmt(grandTotal());
   updateHeaderTotal();
 }
 
