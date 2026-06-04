@@ -158,6 +158,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .sum-row-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--text)}
 .sum-row-val.hi{font-weight:700}
 .sum-item-name{font-size:12px;color:var(--text3);padding-left:10px}
+.store-name-bar{display:flex;align-items:center;gap:10px;padding:12px 14px 0}
+.store-name-bar label{font-size:11px;font-weight:700;color:var(--text2);white-space:nowrap;letter-spacing:0.04em}
+.store-name-inp{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:14px;font-weight:700;padding:8px 12px}
+.store-name-inp:focus{outline:none;border-color:var(--accent)}
+@media print{.store-name-bar{display:none!important}}
 .action-bar{padding:14px;display:flex;gap:8px;flex-wrap:wrap}
 
 /* ── Modal ── */
@@ -294,6 +299,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="subtotal-card-num" id="grand">$ 0</div>
           <div class="subtotal-card-sub">食材＋包材合計</div>
         </div>
+      </div>
+      <div class="store-name-bar">
+        <label>🏪 門市名稱</label>
+        <input class="store-name-inp" type="text" id="store-name" placeholder="請填入門市名稱（列印與Excel會帶入）">
       </div>
       <div class="action-bar">
         <button class="btn btn-print" onclick="doPrint()">🖨️ 列印 PDF</button>
@@ -1219,7 +1228,9 @@ function renderPrint(){
 function doPrint(){
   const now=new Date();
   const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-  document.getElementById('pm').textContent='盤點時間：'+ts+'　麻的小辛辣 — 內部使用';
+  const storeName=document.getElementById('store-name').value.trim();
+  const storeLabel=storeName?storeName+' ｜ ':'';
+  document.getElementById('pm').textContent=storeLabel+'盤點時間：'+ts+'　麻的小辛辣 — 內部使用';
   renderPrint();
   setTimeout(()=>window.print(),100);
 }
@@ -1228,7 +1239,9 @@ function exportExcel(){
   const now=new Date();
   const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
   let rows=[
-    ['麻的小辛辣｜庫存金額彙整報表'],['盤點時間：'+ts],[],
+    ['麻的小辛辣｜庫存金額彙整報表'],
+    ['門市：'+(document.getElementById('store-name').value.trim()||'（未填寫）')],
+    ['盤點時間：'+ts],[],
     ['區域','分類','品名','規格','數量','單位','金額(元)'],
   ];
   S.cartCats.forEach(cat=>(S.cartItems[cat]||[]).forEach(item=>{
