@@ -54,7 +54,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 /* Cart sections */
 #page-cart .sec-hdr{background:var(--c1light)}
-#page-cart .sec-hdr .sec-idx:nth-child(1){color:var(--c1)}
 #page-cart .sec-total{color:var(--c1b)}
 /* Stock sections */
 #page-stock .sec-hdr{background:var(--c2light)}
@@ -302,7 +301,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div class="store-name-bar">
         <label>🏪 門市名稱</label>
-        <input class="store-name-inp" type="text" id="store-name" placeholder="請填入門市名稱（列印與Excel會帶入）">
+        <input class="store-name-inp" type="text" id="store-name" placeholder="請填入門市名稱（列印、Excel、匯出備份會帶入）" oninput="setStoreName(this.value)">
       </div>
       <div class="action-bar">
         <button class="btn btn-print" onclick="doPrint()">🖨️ 列印 PDF</button>
@@ -516,20 +515,24 @@ DEF_CATS.forEach(c=>{DEF.cartItems[c]=[];DEF.stockItems[c]=[];});
 
 // ── State ──
 let S={};
+const DEF_THRESH_DEFAULTS={"p蔬菜1": {"low": 100.0, "high": 3000.0}, "p蔬菜2": {"low": 100.0, "high": 500.0}, "p蔬菜3": {"low": 100.0, "high": 1000.0}, "p蔬菜4": {"low": 100.0, "high": 500.0}, "p蔬菜5": {"low": 100.0, "high": 1000.0}, "p蔬菜6": {"low": 100.0, "high": 500.0}, "p蔬菜7": {"low": 100.0, "high": 1000.0}, "p蔬菜8": {"low": 100.0, "high": 500.0}, "p蔬菜9": {"low": 100.0, "high": 1000.0}, "p蔬菜10": {"low": 100.0, "high": 1000.0}, "p蔬菜11": {"low": 100.0, "high": 1000.0}, "p火鍋料1": {"low": 100.0, "high": 1000.0}, "p火鍋料2": {"low": 100.0, "high": 1000.0}, "p火鍋料3": {"low": 100.0, "high": 1000.0}, "p火鍋料4": {"low": 100.0, "high": 1000.0}, "p火鍋料5": {"low": 100.0, "high": 1000.0}, "p火鍋料6": {"low": 100.0, "high": 1500.0}, "p火鍋料7": {"low": 100.0, "high": 1500.0}, "p火鍋料8": {"low": 100.0, "high": 1000.0}, "p火鍋料9": {"low": 100.0, "high": 2000.0}, "p火鍋料10": {"low": 100.0, "high": 1000.0}, "p火鍋料11": {"low": 100.0, "high": 1000.0}, "p火鍋料12": {"low": 100.0, "high": 1000.0}, "p火鍋料13": {"low": 100.0, "high": 1000.0}, "p火鍋料14": {"low": 100.0, "high": 2000.0}, "p火鍋料15": {"low": 100.0, "high": 2000.0}, "p火鍋料16": {"low": 100.0, "high": 2000.0}, "p火鍋料17": {"low": 100.0, "high": 1000.0}, "p火鍋料18": {"low": 100.0, "high": 1000.0}, "p火鍋料19": {"low": 100.0, "high": 1000.0}, "p火鍋料20": {"low": 100.0, "high": 2000.0}, "p火鍋料21": {"low": 100.0, "high": 2000.0}, "p火鍋料22": {"low": 100.0, "high": 2000.0}, "p火鍋料23": {"low": 100.0, "high": 2000.0}, "p火鍋料24": {"low": 100.0, "high": 2000.0}, "p火鍋料25": {"low": 100.0, "high": 2000.0}, "p火鍋料26": {"low": 100.0, "high": 2000.0}, "p火鍋料27": {"low": 100.0, "high": 2000.0}, "p火鍋料28": {"low": 100.0, "high": 2000.0}, "p火鍋料29": {"low": 100.0, "high": 1000.0}, "p火鍋料30": {"low": 100.0, "high": 3000.0}, "p火鍋料31": {"low": 100.0, "high": 3000.0}, "p火鍋料32": {"low": 100.0, "high": 1000.0}, "p常溫1": {"low": 100.0, "high": 2000.0}, "p常溫2": {"low": 100.0, "high": 2000.0}, "p常溫3": {"low": 100.0, "high": 1000.0}, "p常溫4": {"low": 100.0, "high": 1000.0}, "p常溫5": {"low": 100.0, "high": 1000.0}, "p常溫6": {"low": 100.0, "high": 1000.0}, "p常溫7": {"low": 100.0, "high": 3000.0}, "p常溫8": {"low": 100.0, "high": 2000.0}, "p常溫9": {"low": 100.0, "high": 1000.0}, "p辛香1": {"low": 100.0, "high": 1000.0}, "p辛香2": {"low": 100.0, "high": 1000.0}, "p辛香3": {"low": 100.0, "high": 1000.0}, "p辛香4": {"low": 100.0, "high": 1000.0}, "p醬料1": {"low": 100.0, "high": 500.0}, "p醬料2": {"low": 100.0, "high": 500.0}, "p醬料3": {"low": 100.0, "high": 2000.0}, "p醬料4": {"low": 100.0, "high": 4000.0}, "p醬料5": {"low": 100.0, "high": 500.0}, "p醬料6": {"low": 100.0, "high": 500.0}, "p醬料7": {"low": 100.0, "high": 500.0}, "p醬料8": {"low": 100.0, "high": 500.0}, "p醬料9": {"low": 100.0, "high": 500.0}, "p醬料10": {"low": 100.0, "high": 500.0}, "p醬料11": {"low": 100.0, "high": 500.0}, "p醬料12": {"low": 100.0, "high": 500.0}, "p醬料13": {"low": 100.0, "high": 500.0}, "p醬料14": {"low": 100.0, "high": 500.0}, "p醬料15": {"low": 100.0, "high": 500.0}, "p醬料16": {"low": 100.0, "high": 500.0}, "p醬料17": {"low": 100.0, "high": 500.0}, "p醬料18": {"low": 100.0, "high": 500.0}, "p醬料19": {"low": 100.0, "high": 500.0}, "p醬料20": {"low": 100.0, "high": 500.0}, "p醬料21": {"low": 100.0, "high": 500.0}, "p醬料22": {"low": 100.0, "high": 500.0}, "p醬料23": {"low": 100.0, "high": 1000.0}, "p醬料24": {"low": 100.0, "high": 2000.0}, "p醬料25": {"low": 100.0, "high": 3000.0}, "p醬料26": {"low": 100.0, "high": 5000.0}, "p醬料27": {"low": 100.0, "high": 3000.0}, "p醬料28": {"low": 100.0, "high": 4000.0}, "p醬料29": {"low": 100.0, "high": 2000.0}, "p醬料31": {"low": 100.0, "high": 500.0}, "p醬料32": {"low": 100.0, "high": 2000.0}, "p醬料33": {"low": 100.0, "high": 2000.0}, "p醬料34": {"low": 100.0, "high": 2000.0}, "p飲料1": {"low": 100.0, "high": 2000.0}, "p飲料2": {"low": 100.0, "high": 2000.0}, "p飲料3": {"low": 100.0, "high": 2000.0}, "p飲料4": {"low": 100.0, "high": 2000.0}, "p飲料5": {"low": 100.0, "high": 2000.0}, "p飲料6": {"low": 100.0, "high": 2000.0}, "p飲料7": {"low": 100.0, "high": 2000.0}, "p飲料8": {"low": 100.0, "high": 2000.0}, "p飲料9": {"low": 100.0, "high": 2000.0}, "p飲料10": {"low": 100.0, "high": 2000.0}, "p飲料11": {"low": 100.0, "high": 2000.0}, "p飲料12": {"low": 100.0, "high": 2000.0}, "p飲料13": {"low": 100.0, "high": 2000.0}, "p飲料14": {"low": 100.0, "high": 2000.0}, "p飲料15": {"low": 100.0, "high": 2000.0}, "p飲料16": {"low": 100.0, "high": 2000.0}, "p包材1": {"low": 100.0, "high": 2000.0}, "p包材2": {"low": 100.0, "high": 2000.0}, "p包材3": {"low": 100.0, "high": 2000.0}, "p包材4": {"low": 100.0, "high": 2000.0}, "p包材5": {"low": 100.0, "high": 2000.0}, "p包材6": {"low": 100.0, "high": 2000.0}, "p包材7": {"low": 100.0, "high": 2000.0}, "p包材8": {"low": 100.0, "high": 2000.0}, "p包材9": {"low": 100.0, "high": 2000.0}, "p包材10": {"low": 100.0, "high": 2000.0}, "p包材11": {"low": 100.0, "high": 2000.0}, "p包材12": {"low": 100.0, "high": 2000.0}, "p包材13": {"low": 100.0, "high": 2000.0}, "p包材14": {"low": 100.0, "high": 2000.0}, "p包材15": {"low": 100.0, "high": 2000.0}, "p包材16": {"low": 100.0, "high": 2000.0}, "p包材17": {"low": 100.0, "high": 2000.0}, "p包材18": {"low": 100.0, "high": 2000.0}, "p包材19": {"low": 100.0, "high": 2000.0}, "p包材20": {"low": 100.0, "high": 2000.0}, "p包材21": {"low": 100.0, "high": 2000.0}, "p包材22": {"low": 100.0, "high": 2000.0}, "p包材23": {"low": 100.0, "high": 5000.0}, "p包材24": {"low": 100.0, "high": 5000.0}, "p包材25": {"low": 100.0, "high": 5000.0}, "p包材26": {"low": 100.0, "high": 2000.0}, "p包材27": {"low": 100.0, "high": 2000.0}, "p包材28": {"low": 100.0, "high": 2000.0}, "p包材29": {"low": 100.0, "high": 2000.0}, "p包材30": {"low": 100.0, "high": 2000.0}, "p清潔1": {"low": 50.0, "high": 1000.0}, "p清潔2": {"low": 50.0, "high": 1000.0}, "p清潔3": {"low": 50.0, "high": 1000.0}, "p清潔4": {"low": 50.0, "high": 1000.0}, "p清潔5": {"low": 50.0, "high": 1000.0}, "p清潔6": {"low": 50.0, "high": 1000.0}, "p清潔7": {"low": 50.0, "high": 1000.0}, "p清潔8": {"low": 50.0, "high": 1000.0}, "p清潔9": {"low": 50.0, "high": 1000.0}, "p清潔10": {"low": 50.0, "high": 1000.0}, "p清潔11": {"low": 50.0, "high": 1000.0}, "p清潔12": {"low": 50.0, "high": 1000.0}, "p清潔13": {"low": 50.0, "high": 1000.0}, "p清潔14": {"low": 50.0, "high": 1000.0}, "p清潔15": {"low": 50.0, "high": 1000.0}, "p清潔16": {"low": 50.0, "high": 1000.0}, "p清潔17": {"low": 50.0, "high": 1000.0}, "p清潔18": {"low": 50.0, "high": 1000.0}, "p火鍋料33": {"low": 100.0, "high": 2000.0}};
+function applyDefaultThresholds(){
+  if(!S.thresholds)S.thresholds={};
+  Object.keys(DEF_THRESH_DEFAULTS).forEach(k=>{
+    const d=DEF_THRESH_DEFAULTS[k];
+    if(!S.thresholds[k]){S.thresholds[k]={low:d.low,high:d.high};}
+    else{
+      if(S.thresholds[k].low===null && d.low!==null)S.thresholds[k].low=d.low;
+      if(S.thresholds[k].high===null && d.high!==null)S.thresholds[k].high=d.high;
+    }
+  });
+}
 function load(){
   try{const v=localStorage.getItem('mala_v5');S=v?JSON.parse(v):JSON.parse(JSON.stringify(DEF));}
   catch(e){S=JSON.parse(JSON.stringify(DEF));}
   // ensure all cats exist in items
   // 合併更新 thresholds：補齊缺少的 key，並將仍為 null 的 low/high 更新為最新預設值
-  const DEF_THRESH={"p蔬菜1": {"low": 100.0, "high": 3000.0}, "p蔬菜2": {"low": 100.0, "high": 500.0}, "p蔬菜3": {"low": 100.0, "high": 1000.0}, "p蔬菜4": {"low": 100.0, "high": 500.0}, "p蔬菜5": {"low": 100.0, "high": 1000.0}, "p蔬菜6": {"low": 100.0, "high": 500.0}, "p蔬菜7": {"low": 100.0, "high": 1000.0}, "p蔬菜8": {"low": 100.0, "high": 500.0}, "p蔬菜9": {"low": 100.0, "high": 1000.0}, "p蔬菜10": {"low": 100.0, "high": 1000.0}, "p蔬菜11": {"low": 100.0, "high": 1000.0}, "p火鍋料1": {"low": 100.0, "high": 1000.0}, "p火鍋料2": {"low": 100.0, "high": 1000.0}, "p火鍋料3": {"low": 100.0, "high": 1000.0}, "p火鍋料4": {"low": 100.0, "high": 1000.0}, "p火鍋料5": {"low": 100.0, "high": 1000.0}, "p火鍋料6": {"low": 100.0, "high": 1500.0}, "p火鍋料7": {"low": 100.0, "high": 1500.0}, "p火鍋料8": {"low": 100.0, "high": 1000.0}, "p火鍋料9": {"low": 100.0, "high": 2000.0}, "p火鍋料10": {"low": 100.0, "high": 1000.0}, "p火鍋料11": {"low": 100.0, "high": 1000.0}, "p火鍋料12": {"low": 100.0, "high": 1000.0}, "p火鍋料13": {"low": 100.0, "high": 1000.0}, "p火鍋料14": {"low": 100.0, "high": 2000.0}, "p火鍋料15": {"low": 100.0, "high": 2000.0}, "p火鍋料16": {"low": 100.0, "high": 2000.0}, "p火鍋料17": {"low": 100.0, "high": 1000.0}, "p火鍋料18": {"low": 100.0, "high": 1000.0}, "p火鍋料19": {"low": 100.0, "high": 1000.0}, "p火鍋料20": {"low": 100.0, "high": 2000.0}, "p火鍋料21": {"low": 100.0, "high": 2000.0}, "p火鍋料22": {"low": 100.0, "high": 2000.0}, "p火鍋料23": {"low": 100.0, "high": 2000.0}, "p火鍋料24": {"low": 100.0, "high": 2000.0}, "p火鍋料25": {"low": 100.0, "high": 2000.0}, "p火鍋料26": {"low": 100.0, "high": 2000.0}, "p火鍋料27": {"low": 100.0, "high": 2000.0}, "p火鍋料28": {"low": 100.0, "high": 2000.0}, "p火鍋料29": {"low": 100.0, "high": 1000.0}, "p火鍋料30": {"low": 100.0, "high": 3000.0}, "p火鍋料31": {"low": 100.0, "high": 3000.0}, "p火鍋料32": {"low": 100.0, "high": 1000.0}, "p常溫1": {"low": 100.0, "high": 2000.0}, "p常溫2": {"low": 100.0, "high": 2000.0}, "p常溫3": {"low": 100.0, "high": 1000.0}, "p常溫4": {"low": 100.0, "high": 1000.0}, "p常溫5": {"low": 100.0, "high": 1000.0}, "p常溫6": {"low": 100.0, "high": 1000.0}, "p常溫7": {"low": 100.0, "high": 3000.0}, "p常溫8": {"low": 100.0, "high": 2000.0}, "p常溫9": {"low": 100.0, "high": 1000.0}, "p辛香1": {"low": 100.0, "high": 1000.0}, "p辛香2": {"low": 100.0, "high": 1000.0}, "p辛香3": {"low": 100.0, "high": 1000.0}, "p辛香4": {"low": 100.0, "high": 1000.0}, "p醬料1": {"low": 100.0, "high": 500.0}, "p醬料2": {"low": 100.0, "high": 500.0}, "p醬料3": {"low": 100.0, "high": 2000.0}, "p醬料4": {"low": 100.0, "high": 4000.0}, "p醬料5": {"low": 100.0, "high": 500.0}, "p醬料6": {"low": 100.0, "high": 500.0}, "p醬料7": {"low": 100.0, "high": 500.0}, "p醬料8": {"low": 100.0, "high": 500.0}, "p醬料9": {"low": 100.0, "high": 500.0}, "p醬料10": {"low": 100.0, "high": 500.0}, "p醬料11": {"low": 100.0, "high": 500.0}, "p醬料12": {"low": 100.0, "high": 500.0}, "p醬料13": {"low": 100.0, "high": 500.0}, "p醬料14": {"low": 100.0, "high": 500.0}, "p醬料15": {"low": 100.0, "high": 500.0}, "p醬料16": {"low": 100.0, "high": 500.0}, "p醬料17": {"low": 100.0, "high": 500.0}, "p醬料18": {"low": 100.0, "high": 500.0}, "p醬料19": {"low": 100.0, "high": 500.0}, "p醬料20": {"low": 100.0, "high": 500.0}, "p醬料21": {"low": 100.0, "high": 500.0}, "p醬料22": {"low": 100.0, "high": 500.0}, "p醬料23": {"low": 100.0, "high": 1000.0}, "p醬料24": {"low": 100.0, "high": 2000.0}, "p醬料25": {"low": 100.0, "high": 3000.0}, "p醬料26": {"low": 100.0, "high": 5000.0}, "p醬料27": {"low": 100.0, "high": 3000.0}, "p醬料28": {"low": 100.0, "high": 4000.0}, "p醬料29": {"low": 100.0, "high": 2000.0}, "p醬料30": {"low": 100.0, "high": 500.0}, "p醬料31": {"low": 100.0, "high": 500.0}, "p醬料32": {"low": 100.0, "high": 2000.0}, "p醬料33": {"low": 100.0, "high": 2000.0}, "p醬料34": {"low": 100.0, "high": 2000.0}, "p飲料1": {"low": 100.0, "high": 2000.0}, "p飲料2": {"low": 100.0, "high": 2000.0}, "p飲料3": {"low": 100.0, "high": 2000.0}, "p飲料4": {"low": 100.0, "high": 2000.0}, "p飲料5": {"low": 100.0, "high": 2000.0}, "p飲料6": {"low": 100.0, "high": 2000.0}, "p飲料7": {"low": 100.0, "high": 2000.0}, "p飲料8": {"low": 100.0, "high": 2000.0}, "p飲料9": {"low": 100.0, "high": 2000.0}, "p飲料10": {"low": 100.0, "high": 2000.0}, "p飲料11": {"low": 100.0, "high": 2000.0}, "p飲料12": {"low": 100.0, "high": 2000.0}, "p飲料13": {"low": 100.0, "high": 2000.0}, "p飲料14": {"low": 100.0, "high": 2000.0}, "p飲料15": {"low": 100.0, "high": 2000.0}, "p飲料16": {"low": 100.0, "high": 2000.0}, "p包材1": {"low": 100.0, "high": 2000.0}, "p包材2": {"low": 100.0, "high": 2000.0}, "p包材3": {"low": 100.0, "high": 2000.0}, "p包材4": {"low": 100.0, "high": 2000.0}, "p包材5": {"low": 100.0, "high": 2000.0}, "p包材6": {"low": 100.0, "high": 2000.0}, "p包材7": {"low": 100.0, "high": 2000.0}, "p包材8": {"low": 100.0, "high": 2000.0}, "p包材9": {"low": 100.0, "high": 2000.0}, "p包材10": {"low": 100.0, "high": 2000.0}, "p包材11": {"low": 100.0, "high": 2000.0}, "p包材12": {"low": 100.0, "high": 2000.0}, "p包材13": {"low": 100.0, "high": 2000.0}, "p包材14": {"low": 100.0, "high": 2000.0}, "p包材15": {"low": 100.0, "high": 2000.0}, "p包材16": {"low": 100.0, "high": 2000.0}, "p包材17": {"low": 100.0, "high": 2000.0}, "p包材18": {"low": 100.0, "high": 2000.0}, "p包材19": {"low": 100.0, "high": 2000.0}, "p包材20": {"low": 100.0, "high": 2000.0}, "p包材21": {"low": 100.0, "high": 2000.0}, "p包材22": {"low": 100.0, "high": 2000.0}, "p包材23": {"low": 100.0, "high": 5000.0}, "p包材24": {"low": 100.0, "high": 5000.0}, "p包材25": {"low": 100.0, "high": 5000.0}, "p包材26": {"low": 100.0, "high": 2000.0}, "p包材27": {"low": 100.0, "high": 2000.0}, "p包材28": {"low": 100.0, "high": 2000.0}, "p包材29": {"low": 100.0, "high": 2000.0}, "p包材30": {"low": 100.0, "high": 2000.0}, "p清潔1": {"low": 50.0, "high": 1000.0}, "p清潔2": {"low": 50.0, "high": 1000.0}, "p清潔3": {"low": 50.0, "high": 1000.0}, "p清潔4": {"low": 50.0, "high": 1000.0}, "p清潔5": {"low": 50.0, "high": 1000.0}, "p清潔6": {"low": 50.0, "high": 1000.0}, "p清潔7": {"low": 50.0, "high": 1000.0}, "p清潔8": {"low": 50.0, "high": 1000.0}, "p清潔9": {"low": 50.0, "high": 1000.0}, "p清潔10": {"low": 50.0, "high": 1000.0}, "p清潔11": {"low": 50.0, "high": 1000.0}, "p清潔12": {"low": 50.0, "high": 1000.0}, "p清潔13": {"low": 50.0, "high": 1000.0}, "p清潔14": {"low": 50.0, "high": 1000.0}, "p清潔15": {"low": 50.0, "high": 1000.0}, "p清潔16": {"low": 50.0, "high": 1000.0}, "p清潔17": {"low": 50.0, "high": 1000.0}, "p清潔18": {"low": 50.0, "high": 1000.0}};
-  if(!S.thresholds)S.thresholds={};
-  Object.keys(DEF_THRESH).forEach(k=>{
-    if(!S.thresholds[k]){S.thresholds[k]=DEF_THRESH[k];}
-    else{
-      if(S.thresholds[k].low===null && DEF_THRESH[k].low!==null)S.thresholds[k].low=DEF_THRESH[k].low;
-      if(S.thresholds[k].high===null && DEF_THRESH[k].high!==null)S.thresholds[k].high=DEF_THRESH[k].high;
-    }
-  });
+  applyDefaultThresholds();
   // 確保 DEF 裡的分類都存在（版本升級遷移）
   DEF.cartCats.forEach(c=>{if(!(S.cartCats||[]).includes(c)){S.cartCats=S.cartCats||[];S.cartCats.push(c);}});
   DEF.stockCats.forEach(c=>{if(!(S.stockCats||[]).includes(c)){S.stockCats=S.stockCats||[];S.stockCats.push(c);}});
@@ -537,6 +540,9 @@ function load(){
   (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
 }
 function save(){localStorage.setItem('mala_v5',JSON.stringify(S));}
+// 門市名稱納入 S，才會一起存檔＋匯出＋匯入（S 是 let，行內事件抓不到，需經此全域函式）
+function setStoreName(v){S.storeName=v;save();}
+function restoreStoreName(){const el=document.getElementById('store-name');if(el)el.value=S.storeName||'';}
 
 // ── 計算 ──
 function pgForProduct(p){
@@ -826,7 +832,9 @@ function exportConfig(){
   const url=URL.createObjectURL(blob);
   const now=new Date();
   const a=document.createElement('a');a.href=url;
-  a.download='庫存資料_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.json';
+  const storeName=(document.getElementById('store-name').value||'').trim();
+  const datestr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  a.download=(storeName?storeName+'_':'')+'庫存管理'+datestr+'.json';
   a.click();URL.revokeObjectURL(url);
   showSnack('資料已匯出');
 }
@@ -842,19 +850,11 @@ function importConfig(){
         if(!data.products||typeof data.products!=='object')throw new Error('格式錯誤');
         if(!confirm('匯入後將覆蓋目前所有資料（商品設定、攤車庫存、現場庫存），確定繼續？'))return;
         S=data;
-        // 合併更新 thresholds：補齊缺少的 key，並將仍為 null 的 low/high 更新為最新預設值
-  const DEF_THRESH={"p蔬菜1": {"low": 100.0, "high": 3000.0}, "p蔬菜2": {"low": 100.0, "high": 500.0}, "p蔬菜3": {"low": 100.0, "high": 1000.0}, "p蔬菜4": {"low": 100.0, "high": 500.0}, "p蔬菜5": {"low": 100.0, "high": 1000.0}, "p蔬菜6": {"low": 100.0, "high": 500.0}, "p蔬菜7": {"low": 100.0, "high": 1000.0}, "p蔬菜8": {"low": 100.0, "high": 500.0}, "p蔬菜9": {"low": 100.0, "high": 1000.0}, "p蔬菜10": {"low": 100.0, "high": 1000.0}, "p蔬菜11": {"low": 100.0, "high": 1000.0}, "p火鍋料1": {"low": 100.0, "high": 1000.0}, "p火鍋料2": {"low": 100.0, "high": 1000.0}, "p火鍋料3": {"low": 100.0, "high": 1000.0}, "p火鍋料4": {"low": 100.0, "high": 1000.0}, "p火鍋料5": {"low": 100.0, "high": 1000.0}, "p火鍋料6": {"low": 100.0, "high": 1500.0}, "p火鍋料7": {"low": 100.0, "high": 1500.0}, "p火鍋料8": {"low": 100.0, "high": 1000.0}, "p火鍋料9": {"low": 100.0, "high": 2000.0}, "p火鍋料10": {"low": 100.0, "high": 1000.0}, "p火鍋料11": {"low": 100.0, "high": 1000.0}, "p火鍋料12": {"low": 100.0, "high": 1000.0}, "p火鍋料13": {"low": 100.0, "high": 1000.0}, "p火鍋料14": {"low": 100.0, "high": 2000.0}, "p火鍋料15": {"low": 100.0, "high": 2000.0}, "p火鍋料16": {"low": 100.0, "high": 2000.0}, "p火鍋料17": {"low": 100.0, "high": 1000.0}, "p火鍋料18": {"low": 100.0, "high": 1000.0}, "p火鍋料19": {"low": 100.0, "high": 1000.0}, "p火鍋料20": {"low": 100.0, "high": 2000.0}, "p火鍋料21": {"low": 100.0, "high": 2000.0}, "p火鍋料22": {"low": 100.0, "high": 2000.0}, "p火鍋料23": {"low": 100.0, "high": 2000.0}, "p火鍋料24": {"low": 100.0, "high": 2000.0}, "p火鍋料25": {"low": 100.0, "high": 2000.0}, "p火鍋料26": {"low": 100.0, "high": 2000.0}, "p火鍋料27": {"low": 100.0, "high": 2000.0}, "p火鍋料28": {"low": 100.0, "high": 2000.0}, "p火鍋料29": {"low": 100.0, "high": 1000.0}, "p火鍋料30": {"low": 100.0, "high": 3000.0}, "p火鍋料31": {"low": 100.0, "high": 3000.0}, "p火鍋料32": {"low": 100.0, "high": 1000.0}, "p常溫1": {"low": 100.0, "high": 2000.0}, "p常溫2": {"low": 100.0, "high": 2000.0}, "p常溫3": {"low": 100.0, "high": 1000.0}, "p常溫4": {"low": 100.0, "high": 1000.0}, "p常溫5": {"low": 100.0, "high": 1000.0}, "p常溫6": {"low": 100.0, "high": 1000.0}, "p常溫7": {"low": 100.0, "high": 3000.0}, "p常溫8": {"low": 100.0, "high": 2000.0}, "p常溫9": {"low": 100.0, "high": 1000.0}, "p辛香1": {"low": 100.0, "high": 1000.0}, "p辛香2": {"low": 100.0, "high": 1000.0}, "p辛香3": {"low": 100.0, "high": 1000.0}, "p辛香4": {"low": 100.0, "high": 1000.0}, "p醬料1": {"low": 100.0, "high": 500.0}, "p醬料2": {"low": 100.0, "high": 500.0}, "p醬料3": {"low": 100.0, "high": 2000.0}, "p醬料4": {"low": 100.0, "high": 4000.0}, "p醬料5": {"low": 100.0, "high": 500.0}, "p醬料6": {"low": 100.0, "high": 500.0}, "p醬料7": {"low": 100.0, "high": 500.0}, "p醬料8": {"low": 100.0, "high": 500.0}, "p醬料9": {"low": 100.0, "high": 500.0}, "p醬料10": {"low": 100.0, "high": 500.0}, "p醬料11": {"low": 100.0, "high": 500.0}, "p醬料12": {"low": 100.0, "high": 500.0}, "p醬料13": {"low": 100.0, "high": 500.0}, "p醬料14": {"low": 100.0, "high": 500.0}, "p醬料15": {"low": 100.0, "high": 500.0}, "p醬料16": {"low": 100.0, "high": 500.0}, "p醬料17": {"low": 100.0, "high": 500.0}, "p醬料18": {"low": 100.0, "high": 500.0}, "p醬料19": {"low": 100.0, "high": 500.0}, "p醬料20": {"low": 100.0, "high": 500.0}, "p醬料21": {"low": 100.0, "high": 500.0}, "p醬料22": {"low": 100.0, "high": 500.0}, "p醬料23": {"low": 100.0, "high": 1000.0}, "p醬料24": {"low": 100.0, "high": 2000.0}, "p醬料25": {"low": 100.0, "high": 3000.0}, "p醬料26": {"low": 100.0, "high": 5000.0}, "p醬料27": {"low": 100.0, "high": 3000.0}, "p醬料28": {"low": 100.0, "high": 4000.0}, "p醬料29": {"low": 100.0, "high": 2000.0}, "p醬料30": {"low": 100.0, "high": 500.0}, "p醬料31": {"low": 100.0, "high": 500.0}, "p醬料32": {"low": 100.0, "high": 2000.0}, "p醬料33": {"low": 100.0, "high": 2000.0}, "p醬料34": {"low": 100.0, "high": 2000.0}, "p飲料1": {"low": 100.0, "high": 2000.0}, "p飲料2": {"low": 100.0, "high": 2000.0}, "p飲料3": {"low": 100.0, "high": 2000.0}, "p飲料4": {"low": 100.0, "high": 2000.0}, "p飲料5": {"low": 100.0, "high": 2000.0}, "p飲料6": {"low": 100.0, "high": 2000.0}, "p飲料7": {"low": 100.0, "high": 2000.0}, "p飲料8": {"low": 100.0, "high": 2000.0}, "p飲料9": {"low": 100.0, "high": 2000.0}, "p飲料10": {"low": 100.0, "high": 2000.0}, "p飲料11": {"low": 100.0, "high": 2000.0}, "p飲料12": {"low": 100.0, "high": 2000.0}, "p飲料13": {"low": 100.0, "high": 2000.0}, "p飲料14": {"low": 100.0, "high": 2000.0}, "p飲料15": {"low": 100.0, "high": 2000.0}, "p飲料16": {"low": 100.0, "high": 2000.0}, "p包材1": {"low": 100.0, "high": 2000.0}, "p包材2": {"low": 100.0, "high": 2000.0}, "p包材3": {"low": 100.0, "high": 2000.0}, "p包材4": {"low": 100.0, "high": 2000.0}, "p包材5": {"low": 100.0, "high": 2000.0}, "p包材6": {"low": 100.0, "high": 2000.0}, "p包材7": {"low": 100.0, "high": 2000.0}, "p包材8": {"low": 100.0, "high": 2000.0}, "p包材9": {"low": 100.0, "high": 2000.0}, "p包材10": {"low": 100.0, "high": 2000.0}, "p包材11": {"low": 100.0, "high": 2000.0}, "p包材12": {"low": 100.0, "high": 2000.0}, "p包材13": {"low": 100.0, "high": 2000.0}, "p包材14": {"low": 100.0, "high": 2000.0}, "p包材15": {"low": 100.0, "high": 2000.0}, "p包材16": {"low": 100.0, "high": 2000.0}, "p包材17": {"low": 100.0, "high": 2000.0}, "p包材18": {"low": 100.0, "high": 2000.0}, "p包材19": {"low": 100.0, "high": 2000.0}, "p包材20": {"low": 100.0, "high": 2000.0}, "p包材21": {"low": 100.0, "high": 2000.0}, "p包材22": {"low": 100.0, "high": 2000.0}, "p包材23": {"low": 100.0, "high": 5000.0}, "p包材24": {"low": 100.0, "high": 5000.0}, "p包材25": {"low": 100.0, "high": 5000.0}, "p包材26": {"low": 100.0, "high": 2000.0}, "p包材27": {"low": 100.0, "high": 2000.0}, "p包材28": {"low": 100.0, "high": 2000.0}, "p包材29": {"low": 100.0, "high": 2000.0}, "p包材30": {"low": 100.0, "high": 2000.0}, "p清潔1": {"low": 50.0, "high": 1000.0}, "p清潔2": {"low": 50.0, "high": 1000.0}, "p清潔3": {"low": 50.0, "high": 1000.0}, "p清潔4": {"low": 50.0, "high": 1000.0}, "p清潔5": {"low": 50.0, "high": 1000.0}, "p清潔6": {"low": 50.0, "high": 1000.0}, "p清潔7": {"low": 50.0, "high": 1000.0}, "p清潔8": {"low": 50.0, "high": 1000.0}, "p清潔9": {"low": 50.0, "high": 1000.0}, "p清潔10": {"low": 50.0, "high": 1000.0}, "p清潔11": {"low": 50.0, "high": 1000.0}, "p清潔12": {"low": 50.0, "high": 1000.0}, "p清潔13": {"low": 50.0, "high": 1000.0}, "p清潔14": {"low": 50.0, "high": 1000.0}, "p清潔15": {"low": 50.0, "high": 1000.0}, "p清潔16": {"low": 50.0, "high": 1000.0}, "p清潔17": {"low": 50.0, "high": 1000.0}, "p清潔18": {"low": 50.0, "high": 1000.0}};
-  if(!S.thresholds)S.thresholds={};
-  Object.keys(DEF_THRESH).forEach(k=>{
-    if(!S.thresholds[k]){S.thresholds[k]=DEF_THRESH[k];}
-    else{
-      if(S.thresholds[k].low===null && DEF_THRESH[k].low!==null)S.thresholds[k].low=DEF_THRESH[k].low;
-      if(S.thresholds[k].high===null && DEF_THRESH[k].high!==null)S.thresholds[k].high=DEF_THRESH[k].high;
-    }
-  });
-  (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
+        // 匯入採忠實還原：直接沿用檔案內的 thresholds，不再補預設值（確保匯出＝匯入）
+        if(!S.thresholds)S.thresholds={};
+        (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
         (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
-        save();renderCart();renderStock();renderPrice();renderPrint();updateHeaderTotal();
+        save();restoreStoreName();renderCart();renderStock();renderPrice();renderPrint();updateHeaderTotal();
         showSnack('資料匯入成功！');
       }catch(err){showSnack('匯入失敗：檔案格式不正確');}
     };
@@ -933,7 +933,8 @@ function syncInvItemMeta(){
     cats.forEach(c=>{
       (ref[c]||[]).forEach(item=>{
         const p=findProduct(item.pid);
-        if(p){item.name=p.name;item.spec=p.spec;}
+        // 只同步品名；規格由各盤點列自行保留（可獨立編輯），不再被商品管理覆蓋
+        if(p){item.name=p.name;}
       });
     });
   });
@@ -1008,14 +1009,6 @@ function setThresh(pid, type, val){
     delete S.thresholds[pid];
   }
   save();
-}
-
-function toggleThreshPanel(){
-  const body=document.getElementById('thresh-body');
-  const arrow=document.getElementById('thresh-arrow');
-  body.classList.toggle('open');
-  arrow.textContent=body.classList.contains('open')?'▲':'▼';
-  if(body.classList.contains('open')) renderThreshPanel();
 }
 
 function renderThreshPanel(){
@@ -1206,18 +1199,15 @@ function renderPrint(){
   }
 
   // ── 食材 & 包材 小計 ──
-  const FOOD_CATS=['蔬菜','火鍋料','常溫食材','辛香料','醬料','飲料冰品'];
+  // 規則：攤車所有分類（含自訂）一律算食材；現場僅「包材/清潔用品」算包材，其餘算食材。
+  // 如此可保證 食材小計 ＋ 包材小計 == 全店總金額。
   const PACK_CATS=['包材','清潔用品'];
-  function catTotal(catName){
-    let t=0;
-    // 攤車
-    (S.cartItems[catName]||[]).forEach(i=>t+=itemValue(i,'cart'));
-    // 現場
-    (S.stockItems[catName]||[]).forEach(i=>t+=itemValue(i,'stock'));
-    return t;
-  }
-  const foodTotal=FOOD_CATS.reduce((s,c)=>s+catTotal(c),0);
-  const packTotal=PACK_CATS.reduce((s,c)=>s+catTotal(c),0);
+  let foodTotal=0, packTotal=0;
+  (S.cartCats||[]).forEach(c=>(S.cartItems[c]||[]).forEach(i=>foodTotal+=itemValue(i,'cart')));
+  (S.stockCats||[]).forEach(c=>{
+    const sub=(S.stockItems[c]||[]).reduce((s,i)=>s+itemValue(i,'stock'),0);
+    if(PACK_CATS.includes(c)) packTotal+=sub; else foodTotal+=sub;
+  });
   document.getElementById('sub-food').textContent=fmt(foodTotal);
   document.getElementById('sub-pack').textContent=fmt(packTotal);
 
@@ -1232,6 +1222,12 @@ function doPrint(){
   const storeLabel=storeName?storeName+' ｜ ':'';
   document.getElementById('pm').textContent=storeLabel+'盤點時間：'+ts+'　麻的小辛辣 — 內部使用';
   renderPrint();
+  // 暫時把網頁標題改成想要的檔名，讓瀏覽器「另存為 PDF」預設帶入此名稱，列印後還原
+  const datestr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  const origTitle=document.title;
+  document.title=(storeName?storeName+'_':'')+'庫存管理'+datestr;
+  const restoreTitle=()=>{document.title=origTitle;window.removeEventListener('afterprint',restoreTitle);};
+  window.addEventListener('afterprint',restoreTitle);
   setTimeout(()=>window.print(),100);
 }
 
@@ -1260,7 +1256,9 @@ function exportExcel(){
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;
-  a.download='麻的小辛辣_庫存_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.csv';
+  const storeName=(document.getElementById('store-name').value||'').trim();
+  const datestr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  a.download=(storeName?storeName+'_':'')+'庫存管理'+datestr+'.csv';
   a.click();URL.revokeObjectURL(url);
   showSnack('Excel 已下載');
 }
@@ -1323,7 +1321,7 @@ function hideAdminPanel(){
 }
 
 // ── 初始化 ──
-load();renderCart();renderStock();renderPrice();updateHeaderTotal();
+load();restoreStoreName();renderCart();renderStock();renderPrice();updateHeaderTotal();
 </script>
 </body>
 </html>
