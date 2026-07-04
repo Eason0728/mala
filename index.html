@@ -302,7 +302,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div class="store-name-bar">
         <label>🏪 門市名稱</label>
-        <input class="store-name-inp" type="text" id="store-name" placeholder="請填入門市名稱（列印、Excel、匯出備份會帶入）" oninput="setStoreName(this.value)">
+        <input class="store-name-inp" type="text" id="store-name" placeholder="請填入門市名稱（列印、Excel、匯出備份會帶入）" oninput="setStoreNameLive(this.value)" onchange="setStoreName(this.value)">
       </div>
       <div class="action-bar">
         <button class="btn btn-print" onclick="doPrint()">🖨️ 列印 PDF</button>
@@ -518,21 +518,22 @@ DEF_CATS.forEach(c=>{DEF.cartItems[c]=[];DEF.stockItems[c]=[];});
 let S={};
 const DEF_THRESH_DEFAULTS={"p蔬菜1": {"low": 100.0, "high": 3000.0}, "p蔬菜2": {"low": 100.0, "high": 500.0}, "p蔬菜3": {"low": 100.0, "high": 1000.0}, "p蔬菜4": {"low": 100.0, "high": 500.0}, "p蔬菜5": {"low": 100.0, "high": 1000.0}, "p蔬菜6": {"low": 100.0, "high": 500.0}, "p蔬菜7": {"low": 100.0, "high": 1000.0}, "p蔬菜8": {"low": 100.0, "high": 500.0}, "p蔬菜9": {"low": 100.0, "high": 1000.0}, "p蔬菜10": {"low": 100.0, "high": 1000.0}, "p蔬菜11": {"low": 100.0, "high": 1000.0}, "p火鍋料1": {"low": 100.0, "high": 1000.0}, "p火鍋料2": {"low": 100.0, "high": 1000.0}, "p火鍋料3": {"low": 100.0, "high": 1000.0}, "p火鍋料4": {"low": 100.0, "high": 1000.0}, "p火鍋料5": {"low": 100.0, "high": 1000.0}, "p火鍋料6": {"low": 100.0, "high": 1500.0}, "p火鍋料7": {"low": 100.0, "high": 1500.0}, "p火鍋料8": {"low": 100.0, "high": 1000.0}, "p火鍋料9": {"low": 100.0, "high": 2000.0}, "p火鍋料10": {"low": 100.0, "high": 1000.0}, "p火鍋料11": {"low": 100.0, "high": 1000.0}, "p火鍋料12": {"low": 100.0, "high": 1000.0}, "p火鍋料13": {"low": 100.0, "high": 1000.0}, "p火鍋料14": {"low": 100.0, "high": 2000.0}, "p火鍋料15": {"low": 100.0, "high": 2000.0}, "p火鍋料16": {"low": 100.0, "high": 2000.0}, "p火鍋料17": {"low": 100.0, "high": 1000.0}, "p火鍋料18": {"low": 100.0, "high": 1000.0}, "p火鍋料19": {"low": 100.0, "high": 1000.0}, "p火鍋料20": {"low": 100.0, "high": 2000.0}, "p火鍋料21": {"low": 100.0, "high": 2000.0}, "p火鍋料22": {"low": 100.0, "high": 2000.0}, "p火鍋料23": {"low": 100.0, "high": 2000.0}, "p火鍋料24": {"low": 100.0, "high": 2000.0}, "p火鍋料25": {"low": 100.0, "high": 2000.0}, "p火鍋料26": {"low": 100.0, "high": 2000.0}, "p火鍋料27": {"low": 100.0, "high": 2000.0}, "p火鍋料28": {"low": 100.0, "high": 2000.0}, "p火鍋料29": {"low": 100.0, "high": 1000.0}, "p火鍋料30": {"low": 100.0, "high": 3000.0}, "p火鍋料31": {"low": 100.0, "high": 3000.0}, "p火鍋料32": {"low": 100.0, "high": 1000.0}, "p常溫1": {"low": 100.0, "high": 2000.0}, "p常溫2": {"low": 100.0, "high": 2000.0}, "p常溫3": {"low": 100.0, "high": 1000.0}, "p常溫4": {"low": 100.0, "high": 1000.0}, "p常溫5": {"low": 100.0, "high": 1000.0}, "p常溫6": {"low": 100.0, "high": 1000.0}, "p常溫7": {"low": 100.0, "high": 3000.0}, "p常溫8": {"low": 100.0, "high": 2000.0}, "p常溫9": {"low": 100.0, "high": 1000.0}, "p辛香1": {"low": 100.0, "high": 1000.0}, "p辛香2": {"low": 100.0, "high": 1000.0}, "p辛香3": {"low": 100.0, "high": 1000.0}, "p辛香4": {"low": 100.0, "high": 1000.0}, "p醬料1": {"low": 100.0, "high": 500.0}, "p醬料2": {"low": 100.0, "high": 500.0}, "p醬料3": {"low": 100.0, "high": 2000.0}, "p醬料4": {"low": 100.0, "high": 4000.0}, "p醬料5": {"low": 100.0, "high": 500.0}, "p醬料6": {"low": 100.0, "high": 500.0}, "p醬料7": {"low": 100.0, "high": 500.0}, "p醬料8": {"low": 100.0, "high": 500.0}, "p醬料9": {"low": 100.0, "high": 500.0}, "p醬料10": {"low": 100.0, "high": 500.0}, "p醬料11": {"low": 100.0, "high": 500.0}, "p醬料12": {"low": 100.0, "high": 500.0}, "p醬料13": {"low": 100.0, "high": 500.0}, "p醬料14": {"low": 100.0, "high": 500.0}, "p醬料15": {"low": 100.0, "high": 500.0}, "p醬料16": {"low": 100.0, "high": 500.0}, "p醬料17": {"low": 100.0, "high": 500.0}, "p醬料18": {"low": 100.0, "high": 500.0}, "p醬料19": {"low": 100.0, "high": 500.0}, "p醬料20": {"low": 100.0, "high": 500.0}, "p醬料21": {"low": 100.0, "high": 500.0}, "p醬料22": {"low": 100.0, "high": 500.0}, "p醬料23": {"low": 100.0, "high": 1000.0}, "p醬料24": {"low": 100.0, "high": 2000.0}, "p醬料25": {"low": 100.0, "high": 3000.0}, "p醬料26": {"low": 100.0, "high": 5000.0}, "p醬料27": {"low": 100.0, "high": 3000.0}, "p醬料28": {"low": 100.0, "high": 4000.0}, "p醬料29": {"low": 100.0, "high": 2000.0}, "p醬料31": {"low": 100.0, "high": 500.0}, "p醬料32": {"low": 100.0, "high": 2000.0}, "p醬料33": {"low": 100.0, "high": 2000.0}, "p醬料34": {"low": 100.0, "high": 2000.0}, "p飲料1": {"low": 100.0, "high": 2000.0}, "p飲料2": {"low": 100.0, "high": 2000.0}, "p飲料3": {"low": 100.0, "high": 2000.0}, "p飲料4": {"low": 100.0, "high": 2000.0}, "p飲料5": {"low": 100.0, "high": 2000.0}, "p飲料6": {"low": 100.0, "high": 2000.0}, "p飲料7": {"low": 100.0, "high": 2000.0}, "p飲料8": {"low": 100.0, "high": 2000.0}, "p飲料9": {"low": 100.0, "high": 2000.0}, "p飲料10": {"low": 100.0, "high": 2000.0}, "p飲料11": {"low": 100.0, "high": 2000.0}, "p飲料12": {"low": 100.0, "high": 2000.0}, "p飲料13": {"low": 100.0, "high": 2000.0}, "p飲料14": {"low": 100.0, "high": 2000.0}, "p飲料15": {"low": 100.0, "high": 2000.0}, "p飲料16": {"low": 100.0, "high": 2000.0}, "p包材1": {"low": 100.0, "high": 2000.0}, "p包材2": {"low": 100.0, "high": 2000.0}, "p包材3": {"low": 100.0, "high": 2000.0}, "p包材4": {"low": 100.0, "high": 2000.0}, "p包材5": {"low": 100.0, "high": 2000.0}, "p包材6": {"low": 100.0, "high": 2000.0}, "p包材7": {"low": 100.0, "high": 2000.0}, "p包材8": {"low": 100.0, "high": 2000.0}, "p包材9": {"low": 100.0, "high": 2000.0}, "p包材10": {"low": 100.0, "high": 2000.0}, "p包材11": {"low": 100.0, "high": 2000.0}, "p包材12": {"low": 100.0, "high": 2000.0}, "p包材13": {"low": 100.0, "high": 2000.0}, "p包材14": {"low": 100.0, "high": 2000.0}, "p包材15": {"low": 100.0, "high": 2000.0}, "p包材16": {"low": 100.0, "high": 2000.0}, "p包材17": {"low": 100.0, "high": 2000.0}, "p包材18": {"low": 100.0, "high": 2000.0}, "p包材19": {"low": 100.0, "high": 2000.0}, "p包材20": {"low": 100.0, "high": 2000.0}, "p包材21": {"low": 100.0, "high": 2000.0}, "p包材22": {"low": 100.0, "high": 2000.0}, "p包材23": {"low": 100.0, "high": 5000.0}, "p包材24": {"low": 100.0, "high": 5000.0}, "p包材25": {"low": 100.0, "high": 5000.0}, "p包材26": {"low": 100.0, "high": 2000.0}, "p包材27": {"low": 100.0, "high": 2000.0}, "p包材28": {"low": 100.0, "high": 2000.0}, "p包材29": {"low": 100.0, "high": 2000.0}, "p包材30": {"low": 100.0, "high": 2000.0}, "p清潔1": {"low": 50.0, "high": 1000.0}, "p清潔2": {"low": 50.0, "high": 1000.0}, "p清潔3": {"low": 50.0, "high": 1000.0}, "p清潔4": {"low": 50.0, "high": 1000.0}, "p清潔5": {"low": 50.0, "high": 1000.0}, "p清潔6": {"low": 50.0, "high": 1000.0}, "p清潔7": {"low": 50.0, "high": 1000.0}, "p清潔8": {"low": 50.0, "high": 1000.0}, "p清潔9": {"low": 50.0, "high": 1000.0}, "p清潔10": {"low": 50.0, "high": 1000.0}, "p清潔11": {"low": 50.0, "high": 1000.0}, "p清潔12": {"low": 50.0, "high": 1000.0}, "p清潔13": {"low": 50.0, "high": 1000.0}, "p清潔14": {"low": 50.0, "high": 1000.0}, "p清潔15": {"low": 50.0, "high": 1000.0}, "p清潔16": {"low": 50.0, "high": 1000.0}, "p清潔17": {"low": 50.0, "high": 1000.0}, "p清潔18": {"low": 50.0, "high": 1000.0}, "p火鍋料33": {"low": 100.0, "high": 2000.0}};
 function applyDefaultThresholds(){
-  if(!S.thresholds)S.thresholds={};
+  if(!S.thresholds||typeof S.thresholds!=='object')S.thresholds={};
+  // 只補「從未出現過」的品項；已存在的 key（含 {low:null,high:null}＝使用者明確清除）一律保留
   Object.keys(DEF_THRESH_DEFAULTS).forEach(k=>{
-    const d=DEF_THRESH_DEFAULTS[k];
-    if(!S.thresholds[k]){S.thresholds[k]={low:d.low,high:d.high};}
-    else{
-      if(S.thresholds[k].low===null && d.low!==null)S.thresholds[k].low=d.low;
-      if(S.thresholds[k].high===null && d.high!==null)S.thresholds[k].high=d.high;
-    }
+    if(!(k in S.thresholds)){const d=DEF_THRESH_DEFAULTS[k];S.thresholds[k]={low:d.low,high:d.high};}
   });
 }
 function load(){
   try{const v=localStorage.getItem('mala_v5');S=v?JSON.parse(v):JSON.parse(JSON.stringify(DEF));}
   catch(e){S=JSON.parse(JSON.stringify(DEF));}
-  // ensure all cats exist in items
-  // 合併更新 thresholds：補齊缺少的 key，並將仍為 null 的 low/high 更新為最新預設值
+  // 結構防呆：欄位缺失的歷史壞資料自動補齊，初始化不再因單一欄位缺失而中斷
+  if(!S.products||typeof S.products!=='object')S.products=JSON.parse(JSON.stringify(DEF.products));
+  if(!Array.isArray(S.cartCats))S.cartCats=[];
+  if(!Array.isArray(S.stockCats))S.stockCats=[];
+  if(!S.cartItems||typeof S.cartItems!=='object')S.cartItems={};
+  if(!S.stockItems||typeof S.stockItems!=='object')S.stockItems={};
+  // 補齊缺少的預設閾值（僅限從未出現過的 key）
   applyDefaultThresholds();
   // 確保 DEF 裡的分類都存在（版本升級遷移）
   DEF.cartCats.forEach(c=>{if(!(S.cartCats||[]).includes(c)){S.cartCats=S.cartCats||[];S.cartCats.push(c);}});
@@ -542,7 +543,8 @@ function load(){
 }
 function save(){localStorage.setItem('mala_v5',JSON.stringify(S));}
 // 門市名稱納入 S，才會一起存檔＋匯出＋匯入（S 是 let，行內事件抓不到，需經此全域函式）
-function setStoreName(v){S.storeName=v;save();}
+function setStoreNameLive(v){S.storeName=v;}      // oninput：每鍵只更新記憶體，匯出隨時是最新值
+function setStoreName(v){S.storeName=v;save();}   // onchange：離開欄位才寫入 localStorage
 function restoreStoreName(){const el=document.getElementById('store-name');if(el)el.value=S.storeName||'';}
 
 // ── 計算 ──
@@ -577,6 +579,14 @@ function fmtpg(n){
   return n.toFixed(4);
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+// HTML 逸出：使用者可自訂的文字（品名、分類名）插入 innerHTML 前必須經過此函式
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// 匯出檔名共用邏輯：門市名稱（過濾檔名非法字元）＋ 庫存管理 ＋ YYYYMMDD；三個匯出入口共用
+function exportBaseName(now){
+  const store=(S.storeName||'').trim().replace(/[\\\/:*?"<>|]/g,'');
+  const d=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  return (store?store+'_':'')+'庫存管理'+d;
+}
 function grandTotal(){
   let t=0;
   (S.cartCats||[]).forEach(c=>(S.cartItems[c]||[]).forEach(i=>t+=itemValue(i,'cart')));
@@ -833,11 +843,37 @@ function exportConfig(){
   const url=URL.createObjectURL(blob);
   const now=new Date();
   const a=document.createElement('a');a.href=url;
-  const storeName=(document.getElementById('store-name').value||'').trim();
-  const datestr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
-  a.download=(storeName?storeName+'_':'')+'庫存管理'+datestr+'.json';
+  a.download=exportBaseName(now)+'.json';
   a.click();URL.revokeObjectURL(url);
   showSnack('資料已匯出');
+}
+// 套用匯入資料。成功回傳 true；任何失敗完整回滾（記憶體與畫面），localStorage 絕不寫入壞資料
+function importData(data){
+  const prev=S;
+  try{
+    if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('格式錯誤');
+    if(!data.products||typeof data.products!=='object'||Array.isArray(data.products))throw new Error('格式錯誤');
+    // 結構補齊：舊版或欄位不全的備份檔補成完整結構，不再造成半毀狀態
+    if(!Array.isArray(data.cartCats))data.cartCats=[];
+    if(!Array.isArray(data.stockCats))data.stockCats=[];
+    if(!data.cartItems||typeof data.cartItems!=='object')data.cartItems={};
+    if(!data.stockItems||typeof data.stockItems!=='object')data.stockItems={};
+    // 匯入採忠實還原：沿用檔案內的 thresholds，不補預設值（確保匯出＝匯入）
+    if(!data.thresholds||typeof data.thresholds!=='object')data.thresholds={};
+    // 舊版備份沒有門市名稱欄位：沿用目前輸入的值，不清空
+    if(data.storeName===undefined)data.storeName=prev.storeName||'';
+    S=data;
+    S.cartCats.forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
+    S.stockCats.forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
+    // 先渲染（等同深度驗證），全部成功才寫入 localStorage
+    renderCart();renderStock();renderPrice();renderPrint();renderThreshPanel();updateHeaderTotal();restoreStoreName();
+    save();
+    return true;
+  }catch(err){
+    S=prev;
+    renderCart();renderStock();renderPrice();renderPrint();updateHeaderTotal();restoreStoreName();
+    return false;
+  }
 }
 function importConfig(){
   const inp=document.createElement('input');
@@ -846,18 +882,11 @@ function importConfig(){
     const file=e.target.files[0];if(!file)return;
     const reader=new FileReader();
     reader.onload=ev=>{
-      try{
-        const data=JSON.parse(ev.target.result);
-        if(!data.products||typeof data.products!=='object')throw new Error('格式錯誤');
-        if(!confirm('匯入後將覆蓋目前所有資料（商品設定、攤車庫存、現場庫存），確定繼續？'))return;
-        S=data;
-        // 匯入採忠實還原：直接沿用檔案內的 thresholds，不再補預設值（確保匯出＝匯入）
-        if(!S.thresholds)S.thresholds={};
-        (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
-        (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
-        save();restoreStoreName();renderCart();renderStock();renderPrice();renderPrint();updateHeaderTotal();
-        showSnack('資料匯入成功！');
-      }catch(err){showSnack('匯入失敗：檔案格式不正確');}
+      let data;
+      try{data=JSON.parse(ev.target.result);}catch(err){showSnack('匯入失敗：檔案格式不正確');return;}
+      if(!data||typeof data!=='object'||!data.products){showSnack('匯入失敗：檔案格式不正確');return;}
+      if(!confirm('匯入後將覆蓋目前所有資料（商品設定、攤車庫存、現場庫存），確定繼續？'))return;
+      showSnack(importData(data)?'資料匯入成功！':'匯入失敗：檔案格式不正確');
     };
     reader.readAsText(file);
   };
@@ -945,7 +974,8 @@ function pUpd(cat,idx,field,val){
   const items=S.products[cat];if(!items||!items[idx])return;
   if(field==='name'||field==='unit')items[idx][field]=val;
   else items[idx][field]=parseFloat(val)||0;
-  // 同步攤車/現場 item 的名稱與規格
+  // 只同步攤車/現場 item 的品名（規格由各盤點列自訂保留，不同步；
+  // 注意：既有列以舊規格×新單價計值，修正商品規格後請確認各列規格是否需一併更新）
   syncInvItemMeta();
   save();
   const el=document.getElementById(`ppg-${cat}-${idx}`);
@@ -1005,10 +1035,7 @@ function setThresh(pid, type, val){
   if(!S.thresholds[pid]) S.thresholds[pid]={low:null,high:null};
   const v = (val===''||val===null) ? null : parseFloat(val);
   S.thresholds[pid][type] = (v===null||isNaN(v)) ? null : v;
-  // 若兩個都是 null，刪掉整個 key 節省空間
-  if(S.thresholds[pid].low===null && S.thresholds[pid].high===null){
-    delete S.thresholds[pid];
-  }
+  // 兩者皆 null 仍保留 key：作為「使用者明確清除」的記號，load() 才不會把預設值套回來
   save();
 }
 
@@ -1028,7 +1055,7 @@ function renderThreshPanel(){
       const row=document.createElement('div');
       row.className='thresh-row';
       row.innerHTML=`
-        <div class="thresh-name">${p.name}</div>
+        <div class="thresh-name">${esc(p.name)}</div>
         <span class="thresh-tag low">低於</span>
         <input class="thresh-inp" type="number" inputmode="decimal" placeholder="不設定"
           value="${t.low!==null?t.low:''}"
@@ -1122,67 +1149,63 @@ function renderPrint(){
 
   // 合併攤車+現場，按分類彙整所有品項（攤車庫存金額 + 現場庫存金額）
   function buildCombinedSec(){
-    // ── 第一步：全域 pidMap，跨所有分類合併同一商品的金額 ──
+    // ── 第一步：全域 pidMap，跨所有分類合併同一商品的金額與數量（攤車/現場分開累計）──
     const globalPidMap={};
-    // 每列數量顯示：攤車數量＋現場數量（金額仍為兩者合計）
     const fmtQ=n=>{n=+(+n||0).toFixed(2);return n.toString();};
-    const qtyLine=(e)=>`攤車 ${fmtQ(e.cartQty)}　現場 ${fmtQ(e.stockQty)}`;
-    S.cartCats.forEach(cat=>{
-      (S.cartItems[cat]||[]).forEach(item=>{
-        const v=itemValue(item,'cart');
-        if(!globalPidMap[item.pid])globalPidMap[item.pid]={name:item.name,pid:item.pid,total:0,cartQty:0,stockQty:0};
-        globalPidMap[item.pid].total+=v;
-        globalPidMap[item.pid].cartQty+=parseFloat(item.qty)||0;
-      });
-    });
-    S.stockCats.forEach(cat=>{
-      (S.stockItems[cat]||[]).forEach(item=>{
-        const v=itemValue(item,'stock');
-        if(!globalPidMap[item.pid])globalPidMap[item.pid]={name:item.name,pid:item.pid,total:0,cartQty:0,stockQty:0};
-        globalPidMap[item.pid].total+=v;
-        globalPidMap[item.pid].stockQty+=parseFloat(item.qty)||0;
-      });
-    });
+    const acc=(item,mode)=>{
+      if(!globalPidMap[item.pid])globalPidMap[item.pid]={name:item.name,pid:item.pid,total:0,
+        cartQty:0,stockQty:0,cartBase:0,stockBase:0,cartSpecs:new Set(),stockSpecs:new Set()};
+      const e=globalPidMap[item.pid];
+      e.total+=itemValue(item,mode);
+      const q=parseFloat(item.qty)||0,sp=parseFloat(item.spec)||1;
+      e[mode+'Qty']+=q;e[mode+'Base']+=q*sp;
+      if(q>0)e[mode+'Specs'].add(sp);
+    };
+    S.cartCats.forEach(cat=>(S.cartItems[cat]||[]).forEach(item=>acc(item,'cart')));
+    S.stockCats.forEach(cat=>(S.stockItems[cat]||[]).forEach(item=>acc(item,'stock')));
+    // 數量顯示：同一側各列規格一致時顯示輸入的數量；規格不一致時改以「數量×規格」基準單位顯示，
+    // 避免不同規格的數量被直接相加成無意義的數字
+    const qtyLine=e=>{
+      const side=pre=>{
+        if(e[pre+'Specs'].size>1){const p2=findProduct(e.pid);return fmtQ(e[pre+'Base'])+(p2?p2.unit:'');}
+        return fmtQ(e[pre+'Qty']);
+      };
+      return `攤車 ${side('cart')}　現場 ${side('stock')}`;
+    };
+    // 有盤點數量但金額為 0（單價未設定）的品項也要顯示，不可從報表中消失
+    const visible=e=>e.total>0||e.cartQty>0||e.stockQty>0;
+    const rowHtml=e=>{
+      const v=e.total,t=getThresh(e.pid);
+      let badge='',rowCls='sum-row';
+      if(t){
+        if(t.low!==null && v<t.low){badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;rowCls='sum-row has-alert-low';}
+        else if(t.high!==null && v>t.high){badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;rowCls='sum-row has-alert-high';}
+      }
+      return `<div class="${rowCls}"><span class="sum-item-name">▸ ${esc(e.name)}</span><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end"><span class="sum-qty">${qtyLine(e)}</span>${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
+    };
     // ── 第二步：按商品管理分類順序顯示，每個 pid 只出現一次 ──
     const shownPids=new Set();
     const productCats=Object.keys(S.products);
     let total=0;let html='';
     productCats.forEach(cat=>{
-      const items=(S.products[cat]||[]);
       let ct=0;let rows='';
-      items.forEach(p=>{
+      (S.products[cat]||[]).forEach(p=>{
         if(shownPids.has(p.id))return;
         const entry=globalPidMap[p.id];
-        if(!entry||entry.total<=0)return;
+        if(!entry||!visible(entry))return;
         shownPids.add(p.id);
-        const v=entry.total;
-        const t=getThresh(p.id);
-        let badge='';let rowCls='sum-row';
-        if(t){
-          if(t.low!==null && v<t.low){badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;rowCls='sum-row has-alert-low';}
-          else if(t.high!==null && v>t.high){badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;rowCls='sum-row has-alert-high';}
-        }
-        rows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${entry.name}</span><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end"><span class="sum-qty">${qtyLine(entry)}</span>${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
-        ct+=v;
+        rows+=rowHtml(entry);ct+=entry.total;
       });
-      if(ct>0){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【${cat}】小計</span><span class="sum-row-val hi">${fmt(ct)}</span></div>${rows}`;total+=ct;}
+      if(rows!==''){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【${esc(cat)}】小計</span><span class="sum-row-val hi">${fmt(ct)}</span></div>${rows}`;total+=ct;}
     });
     // 補上不在商品管理分類的品項（新建自訂分類）
     let extraCt=0;let extraRows='';
     Object.values(globalPidMap).forEach(entry=>{
-      if(shownPids.has(entry.pid)||entry.total<=0)return;
+      if(shownPids.has(entry.pid)||!visible(entry))return;
       shownPids.add(entry.pid);
-      const v=entry.total;
-      const t=getThresh(entry.pid);
-      let badge='';let rowCls='sum-row';
-      if(t){
-        if(t.low!==null && v<t.low){badge=`<span class="alert-badge low"><span class="alert-dot"></span>偏低</span>`;rowCls='sum-row has-alert-low';}
-        else if(t.high!==null && v>t.high){badge=`<span class="alert-badge high"><span class="alert-dot"></span>偏高</span>`;rowCls='sum-row has-alert-high';}
-      }
-      extraRows+=`<div class="${rowCls}"><span class="sum-item-name">▸ ${entry.name}</span><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end"><span class="sum-qty">${qtyLine(entry)}</span>${badge}<span class="sum-row-val">${fmt(v)}</span></div></div>`;
-      extraCt+=v;
+      extraRows+=rowHtml(entry);extraCt+=entry.total;
     });
-    if(extraCt>0){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【其他】小計</span><span class="sum-row-val hi">${fmt(extraCt)}</span></div>${extraRows}`;total+=extraCt;}
+    if(extraRows!==''){html+=`<div class="sum-row"><span style="font-size:12px;font-weight:700;color:var(--text2)">【其他】小計</span><span class="sum-row-val hi">${fmt(extraCt)}</span></div>${extraRows}`;total+=extraCt;}
     grand+=total;
     const wrap=document.createElement('div');wrap.className='sec-wrap';
     const card=document.createElement('div');card.className='sec-card';
@@ -1198,22 +1221,26 @@ function renderPrint(){
     const card=document.createElement('div');card.className='sec-card';
     let missingHtml='';
     missingAlerts.forEach(a=>{
-      missingHtml+=`<div class="sum-row has-alert-missing"><span class="sum-item-name">▸ ${a.item.name}</span><span class="alert-badge missing"><span class="alert-dot"></span>未盤點</span></div>`;
+      missingHtml+=`<div class="sum-row has-alert-missing"><span class="sum-item-name">▸ ${esc(a.item.name)}</span><span class="alert-badge missing"><span class="alert-dot"></span>未盤點</span></div>`;
     });
     card.innerHTML=`<div class="sec-hdr" style="background:#fdf0f0"><input class="sec-title-inp" value="⚠️ 未盤點品項（攤車＋現場均無數量）" readonly style="pointer-events:none;color:var(--red)"><div class="sec-total" style="color:var(--red)">${missingAlerts.length} 項</div></div>${missingHtml}`;
     wrap.appendChild(card);body.appendChild(wrap);
   }
 
   // ── 食材 & 包材 小計 ──
-  // 規則：攤車所有分類（含自訂）一律算食材；現場僅「包材/清潔用品」算包材，其餘算食材。
-  // 如此可保證 食材小計 ＋ 包材小計 == 全店總金額。
-  const PACK_CATS=['包材','清潔用品'];
+  // 規則：攤車所有分類（含自訂）一律算食材（使用者決策）；
+  // 現場依「商品管理中該商品所屬分類」判定——包材/清潔用品類的商品算包材，其餘算食材。
+  // 以商品身分而非攤車/現場的分類名稱判定，分類改名或放進自訂分類都不影響歸類；
+  // 亦保證 食材小計 ＋ 包材小計 == 全店總金額。
+  const PACK_PRODUCT_CATS=['包材','清潔用品'];
+  const packPids=new Set();
+  PACK_PRODUCT_CATS.forEach(c=>(S.products[c]||[]).forEach(p=>packPids.add(p.id)));
   let foodTotal=0, packTotal=0;
   (S.cartCats||[]).forEach(c=>(S.cartItems[c]||[]).forEach(i=>foodTotal+=itemValue(i,'cart')));
-  (S.stockCats||[]).forEach(c=>{
-    const sub=(S.stockItems[c]||[]).reduce((s,i)=>s+itemValue(i,'stock'),0);
-    if(PACK_CATS.includes(c)) packTotal+=sub; else foodTotal+=sub;
-  });
+  (S.stockCats||[]).forEach(c=>(S.stockItems[c]||[]).forEach(i=>{
+    const v=itemValue(i,'stock');
+    if(packPids.has(i.pid))packTotal+=v; else foodTotal+=v;
+  }));
   document.getElementById('sub-food').textContent=fmt(foodTotal);
   document.getElementById('sub-pack').textContent=fmt(packTotal);
 
@@ -1221,19 +1248,22 @@ function renderPrint(){
   updateHeaderTotal();
 }
 
+// 列印標題還原：原始標題只在第一次換名時記錄一次（防連按兩次把檔名當原標題）；
+// afterprint 或 60 秒保險絲觸發還原，兩者皆冪等，事件沒觸發也不會永久卡在檔名
+let _printOrigTitle=null;
+function restorePrintTitle(){if(_printOrigTitle!==null){document.title=_printOrigTitle;_printOrigTitle=null;}}
 function doPrint(){
   const now=new Date();
   const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const storeName=document.getElementById('store-name').value.trim();
+  const storeName=(S.storeName||'').trim();
   const storeLabel=storeName?storeName+' ｜ ':'';
   document.getElementById('pm').textContent=storeLabel+'盤點時間：'+ts+'　麻的小辛辣 — 內部使用';
   renderPrint();
-  // 暫時把網頁標題改成想要的檔名，讓瀏覽器「另存為 PDF」預設帶入此名稱，列印後還原
-  const datestr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
-  const origTitle=document.title;
-  document.title=(storeName?storeName+'_':'')+'庫存管理'+datestr;
-  const restoreTitle=()=>{document.title=origTitle;window.removeEventListener('afterprint',restoreTitle);};
-  window.addEventListener('afterprint',restoreTitle);
+  // 暫時把網頁標題改成檔名，讓瀏覽器「另存為 PDF」預設帶入
+  if(_printOrigTitle===null)_printOrigTitle=document.title;
+  document.title=exportBaseName(now);
+  window.addEventListener('afterprint',restorePrintTitle,{once:true});
+  setTimeout(restorePrintTitle,60000);
   setTimeout(()=>window.print(),100);
 }
 
@@ -1242,7 +1272,7 @@ function exportExcel(){
   const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
   let rows=[
     ['麻的小辛辣｜庫存金額彙整報表'],
-    ['門市：'+(document.getElementById('store-name').value.trim()||'（未填寫）')],
+    ['門市：'+((S.storeName||'').trim()||'（未填寫）')],
     ['盤點時間：'+ts],[],
     ['區域','分類','品名','規格','數量','單位','金額(元)'],
   ];
@@ -1258,13 +1288,13 @@ function exportExcel(){
     rows.push(['現場庫存',cat,item.name,item.spec,item.qty||0,p?p.unit:'—',Math.round(v)]);
   }));
   rows.push([]);rows.push(['','','','','','全店總計',Math.round(grandTotal())]);
-  const csv='\uFEFF'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  // 開頭為 = + - @ 的文字補一個空白，避免 Excel 把使用者輸入的品名誤判為公式（CSV injection）
+  const cell=c=>{let s=String(c);if(typeof c==='string'&&/^[=+\-@]/.test(s))s=' '+s;return '"'+s.replace(/"/g,'""')+'"';};
+  const csv='\uFEFF'+rows.map(r=>r.map(cell).join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;
-  const storeName=(document.getElementById('store-name').value||'').trim();
-  const datestr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
-  a.download=(storeName?storeName+'_':'')+'庫存管理'+datestr+'.csv';
+  a.download=exportBaseName(now)+'.csv';
   a.click();URL.revokeObjectURL(url);
   showSnack('Excel 已下載');
 }
