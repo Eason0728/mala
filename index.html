@@ -40,6 +40,24 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .save-status.ok{color:#3d7a3e}
 .save-status.bad{color:#c0392b;font-weight:700}
 .save-status.idle{color:var(--text3)}
+/* ── 雲端同步狀態燈 ── */
+.cloud-status{font-size:10px;margin-top:1px;letter-spacing:.02em;line-height:1.2}
+.cloud-status.ok{color:#2d6a8f}
+.cloud-status.syncing{color:var(--text3)}
+.cloud-status.bad{color:#c0392b;font-weight:700}
+.cloud-status.off{color:var(--text3)}
+/* ── 雲端設定面板 ── */
+.cloud-cfg{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.cloud-cfg label{font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px}
+.cloud-cfg input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)}
+.cloud-cfg .row{display:flex;gap:8px;flex-wrap:wrap}
+.cloud-cfg .row>button{flex:1;padding:9px 10px;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;min-width:110px}
+.cloud-cfg .btn-test{background:var(--c3bg);color:var(--c3)}
+.cloud-cfg .btn-sync{background:var(--accent);color:#fff}
+.cloud-cfg .cc-msg{font-size:12px;min-height:16px;line-height:1.4}
+.cloud-cfg .cc-msg.ok{color:#2d6a8f}
+.cloud-cfg .cc-msg.bad{color:#c0392b;font-weight:700}
+.cloud-cfg .cc-hint{font-size:11px;color:var(--text3);line-height:1.4}
 /* ── 防呆：未匯出備份提醒橫幅 ── */
 .backup-banner{display:none;align-items:center;gap:10px;background:#fff5e0;border-bottom:1px solid #f0d49a;color:#7a5410;padding:9px 14px;font-size:12.5px;flex-shrink:0}
 .backup-banner .bb-text{flex:1;line-height:1.35}
@@ -271,6 +289,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="brand-sub">MA DE SIAO SIN — LA</div>
       <div class="brand-name">庫存管理系統</div>
       <div class="save-status idle" id="save-status">自動儲存：開啟</div>
+      <div class="cloud-status off" id="cloud-status">☁ 雲端未設定</div>
     </div>
     <div class="total-badge" id="header-total" ontouchstart="startAdminHold()" ontouchend="cancelAdminHold()" onmousedown="startAdminHold()" onmouseup="cancelAdminHold()" onmouseleave="cancelAdminHold()" style="user-select:none">$ 0</div>
   </header>
@@ -302,6 +321,33 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button onclick="hideAdminPanel()" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer">✕ 關閉</button>
         </div>
         <div class="threshold-panel-body open" id="thresh-body"></div>
+      </div>
+      <div class="threshold-panel" id="cloud-panel" style="display:none">
+        <div class="threshold-panel-hdr">
+          <span class="threshold-panel-title">☁️ 雲端同步設定</span>
+        </div>
+        <div class="threshold-panel-body open">
+          <div class="cloud-cfg">
+            <div>
+              <label>店代號</label>
+              <input type="text" id="cc-store" placeholder="例：guangfu" autocapitalize="off" autocorrect="off" spellcheck="false">
+            </div>
+            <div>
+              <label>通行碼</label>
+              <input type="password" id="cc-pass" placeholder="向資訊部索取" autocapitalize="off" autocorrect="off">
+            </div>
+            <div>
+              <label>後端網址（資訊部設定，一般免動）</label>
+              <input type="text" id="cc-endpoint" placeholder="https://script.google.com/.../exec" autocapitalize="off" autocorrect="off" spellcheck="false">
+            </div>
+            <div class="row">
+              <button class="btn-test" onclick="cloudTestConn()">測試連線</button>
+              <button class="btn-sync" onclick="cloudSyncNow()">儲存並立即同步</button>
+            </div>
+            <div class="cc-msg" id="cc-msg"></div>
+            <div class="cc-hint">設定後，數字會在停手幾秒/切走時自動同步到雲端；換手機或清快取都不會遺失。通行碼只存這台裝置。</div>
+          </div>
+        </div>
       </div>
       <div class="subtotal-grid" id="print-subtotals">
         <div class="subtotal-card food">
@@ -565,6 +611,7 @@ function save(){
   try{localStorage.setItem('mala_v5',JSON.stringify(S));markSaved(true);}
   catch(e){markSaved(false);}   // 私密視窗／容量滿：立刻讓使用者看到「存不進去」
   refreshBackupState();
+  if(window.Sync)Sync.schedulePush();   // 本機存完 → 排程一次雲端批次同步（去抖動）
 }
 // 門市名稱納入 S，才會一起存檔＋匯出＋匯入（S 是 let，行內事件抓不到，需經此全域函式）
 function setStoreNameLive(v){S.storeName=v;}      // oninput：每鍵只更新記憶體，匯出隨時是最新值
@@ -1371,6 +1418,9 @@ function openAdminPanel(){
   const panel = document.getElementById('threshold-panel');
   panel.style.display = 'block';
   renderThreshPanel();
+  // 顯示雲端面板並帶入現有設定
+  document.getElementById('cloud-panel').style.display = 'block';
+  Sync.fillForm();
   // 捲到頂部
   document.querySelector('.tab-content').scrollTop = 0;
   showSnack('已進入後台設定');
@@ -1379,6 +1429,7 @@ function openAdminPanel(){
 function hideAdminPanel(){
   const panel = document.getElementById('threshold-panel');
   panel.style.display = 'none';
+  document.getElementById('cloud-panel').style.display = 'none';
   showSnack('已關閉後台設定');
 }
 
@@ -1423,9 +1474,124 @@ window.addEventListener('beforeunload',function(e){
   if(hasInvData() && dataSig()!==getExportedSig()){e.preventDefault();e.returnValue='';}
 });
 
+// ══ 雲端同步層（本機即時＋雲端批次；契約對齊 backend/Code.gs 與 mock）══
+var Sync = (function(){
+  var CFG='mala_sync_cfg', SIGK='mala_cloud_sig', DEVK='mala_device';
+  // 預設後端＋店代號（通行碼不烤、由店員後台輸入一次；網址非機密，靠通行碼把關）
+  var DEF_ENDPOINT='https://script.google.com/macros/s/AKfycbyCcg9p0FAUSPC27wiT0Aji5TXG04ySTlF5HoPfPD-CM0h142UVC7wIuHPY7-1eNkJpNg/exec';
+  var DEF_STORE='guangfu';
+  var cfg=null, pushT=null, retryT=null, retryMs=2000, inflight=false, again=false, wired=false;
+
+  function loadCfg(){ try{cfg=JSON.parse(localStorage.getItem(CFG)||'null');}catch(e){cfg=null;} return cfg; }
+  function device(){ var d; try{d=localStorage.getItem(DEVK); if(!d){d='dvc-'+Math.random().toString(36).slice(2,8);localStorage.setItem(DEVK,d);}}catch(e){d='dvc-tmp';} return d; }
+  function enabled(){ return !!(cfg&&cfg.endpoint&&cfg.store&&cfg.pass); }
+  function getSig(){ try{return localStorage.getItem(SIGK)||'';}catch(e){return '';} }
+  function setSig(s){ try{localStorage.setItem(SIGK,s||'');}catch(e){} }
+  function status(kind,txt){ var el=document.getElementById('cloud-status'); if(el){el.className='cloud-status '+kind;el.textContent=txt;} }
+  function stamp(iso){ var m=/T(\d{2}:\d{2})/.exec(iso||''); return m?m[1]:''; }
+
+  function req(bodyObj, keepalive){
+    return fetch(cfg.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(bodyObj),keepalive:!!keepalive}).then(function(r){return r.json();});
+  }
+  function reqWith(endpoint,bodyObj){
+    return fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(bodyObj)}).then(function(r){return r.json();});
+  }
+  function applyPayload(payload){
+    try{JSON.parse(payload);}catch(e){return false;}
+    try{localStorage.setItem('mala_v5',payload);}catch(e){}
+    load();restoreStoreName();renderCart();renderStock();renderPrice();updateHeaderTotal();
+    if(typeof refreshBackupState==='function')refreshBackupState();
+    return true;
+  }
+
+  function pushNow(flush, baseOverride){
+    if(!enabled())return Promise.resolve();
+    if(inflight){ again=true; return Promise.resolve(); }
+    inflight=true;
+    var payload; try{payload=localStorage.getItem('mala_v5')||JSON.stringify(S);}catch(e){payload=JSON.stringify(S);}
+    var sig=dataSig(), base=(baseOverride!=null)?baseOverride:getSig();
+    status('syncing','☁ 同步中…');
+    return req({action:'push',store:cfg.store,pass:cfg.pass,device:device(),sig:sig,baseSig:base,payload:payload,flush:!!flush}, flush)
+      .then(function(resp){
+        inflight=false;
+        if(!resp||!resp.ok)throw new Error((resp&&resp.err)||'server');
+        setSig(resp.sig); status('ok','☁ 已同步 '+stamp(resp.updatedAt)); retryMs=2000;
+        if(resp.overwrote)showSnack('雲端原本有更新版，已用這台的資料覆蓋');
+        if(again){ again=false; schedulePush(0); }
+      })
+      .catch(function(){ inflight=false; status('bad','⚠ 雲端同步失敗（已存本機，會自動重試）'); scheduleRetry(); });
+  }
+  function schedulePush(delay){ if(!enabled())return; if(pushT)clearTimeout(pushT); pushT=setTimeout(function(){pushT=null;pushNow(false);}, (delay==null?3000:delay)); }
+  function scheduleRetry(){ if(retryT)clearTimeout(retryT); retryT=setTimeout(function(){retryT=null;pushNow(false);}, retryMs); retryMs=Math.min(retryMs*2,60000); }
+
+  // 對帳：安全規則——本機沒有實際數字時一律採雲端，避免空資料覆蓋雲端
+  function reconcile(){
+    if(!enabled()){ status('off','☁ 雲端未設定'); return Promise.resolve({skip:true}); }
+    status('syncing','☁ 同步中…');
+    return req({action:'pull',store:cfg.store,pass:cfg.pass}).then(function(resp){
+      if(!resp||!resp.ok){
+        if(resp&&resp.err==='auth')status('bad','⚠ 通行碼錯誤，請到設定重填');
+        else status('bad','⚠ 雲端連線失敗（本機資料仍在）');
+        return resp||{ok:false};
+      }
+      var haveLocal=(typeof hasInvData==='function'&&hasInvData());
+      if(resp.empty){
+        if(haveLocal){ return pushNow(true).then(function(){return {seeded:true};}); }
+        setSig(''); status('ok','☁ 已同步（雲端尚無資料）'); return {empty:true};
+      }
+      var local=dataSig(), synced=getSig();
+      if(resp.sig===local){ setSig(resp.sig); status('ok','☁ 已同步 '+stamp(resp.updatedAt)); return {same:true}; }
+      if(!haveLocal){ applyPayload(resp.payload); setSig(resp.sig); status('ok','☁ 已同步 '+stamp(resp.updatedAt)); showSnack('已從雲端載入資料'); return {adopted:true}; }
+      if(local===synced){ applyPayload(resp.payload); setSig(resp.sig); status('ok','☁ 已同步 '+stamp(resp.updatedAt)); showSnack('已從雲端載入最新資料'); return {adopted:true}; }
+      return pushNow(true, resp.sig).then(function(){return {pushed:true};});   // 本機有變更→最後存的贏
+    }).catch(function(){ status('bad','⚠ 雲端連線失敗（本機資料仍在）'); return {ok:false}; });
+  }
+
+  function boot(){
+    loadCfg();
+    reconcile();
+    if(!wired){
+      wired=true;
+      document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden')pushNow(true); });
+      window.addEventListener('pagehide',function(){ pushNow(true); });
+      window.addEventListener('online',function(){ if(enabled())pushNow(false); });
+    }
+  }
+
+  function fillForm(){ loadCfg(); var s=document.getElementById('cc-store'),p=document.getElementById('cc-pass'),e=document.getElementById('cc-endpoint'); if(s)s.value=(cfg&&cfg.store)||DEF_STORE; if(p)p.value=(cfg&&cfg.pass)||''; if(e)e.value=(cfg&&cfg.endpoint)||DEF_ENDPOINT; }
+  function readForm(){ return {store:(document.getElementById('cc-store').value||'').trim(), pass:(document.getElementById('cc-pass').value||'').trim(), endpoint:(document.getElementById('cc-endpoint').value||'').trim()}; }
+  function saveForm(){ var c=readForm(); try{localStorage.setItem(CFG,JSON.stringify(c));}catch(e){} loadCfg(); return c; }
+
+  return {boot:boot, reconcile:reconcile, schedulePush:schedulePush, pushNow:pushNow, enabled:enabled, fillForm:fillForm, readForm:readForm, saveForm:saveForm, reqWith:reqWith, status:status, stamp:stamp, getSig:getSig, setSig:setSig};
+})();
+
+// 後台：測試連線（不動已存設定）
+function cloudTestConn(){
+  var c=Sync.readForm(), msg=document.getElementById('cc-msg');
+  if(!c.endpoint||!c.store||!c.pass){ msg.className='cc-msg bad'; msg.textContent='請先填店代號、通行碼、後端網址'; return; }
+  msg.className='cc-msg'; msg.textContent='測試中…';
+  Sync.reqWith(c.endpoint,{action:'pull',store:c.store,pass:c.pass})
+    .then(function(resp){
+      if(!resp||!resp.ok){ msg.className='cc-msg bad'; msg.textContent=(resp&&resp.err==='auth')?'通行碼或店代號錯誤':'連線失敗（網址可能不對）'; return; }
+      msg.className='cc-msg ok'; msg.textContent=resp.empty?'連線成功（雲端此店尚無資料）':'連線成功，雲端有資料（'+Sync.stamp(resp.updatedAt)+'）';
+    })
+    .catch(function(){ msg.className='cc-msg bad'; msg.textContent='連線失敗，請檢查後端網址'; });
+}
+// 後台：儲存設定並立即同步（走完整對帳，避免空機覆蓋雲端）
+function cloudSyncNow(){
+  var c=Sync.readForm(), msg=document.getElementById('cc-msg');
+  if(!c.endpoint||!c.store||!c.pass){ msg.className='cc-msg bad'; msg.textContent='請先填店代號、通行碼、後端網址'; return; }
+  Sync.saveForm(); msg.className='cc-msg'; msg.textContent='同步中…';
+  Sync.reconcile().then(function(r){
+    if(r&&r.ok===false){ msg.className='cc-msg bad'; msg.textContent='同步失敗，請檢查設定與網路'; return; }
+    msg.className='cc-msg ok'; msg.textContent= r&&r.adopted?'已從雲端載入資料':'已儲存並同步';
+  });
+}
+
 // ── 初始化 ──
 load();restoreStoreName();renderCart();renderStock();renderPrice();updateHeaderTotal();
 probeStorage();refreshBackupState();
+Sync.boot();
 </script>
 </body>
 </html>
