@@ -35,6 +35,16 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .brand-sub{font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:2px}
 .brand-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:0.02em}
 .total-badge{background:var(--text);color:var(--surface);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;padding:5px 11px;border-radius:6px;flex-shrink:0;letter-spacing:0.02em}
+/* ── 防呆：自動儲存指示燈 ── */
+.save-status{font-size:10px;margin-top:3px;letter-spacing:.02em;line-height:1.2}
+.save-status.ok{color:#3d7a3e}
+.save-status.bad{color:#c0392b;font-weight:700}
+.save-status.idle{color:var(--text3)}
+/* ── 防呆：未匯出備份提醒橫幅 ── */
+.backup-banner{display:none;align-items:center;gap:10px;background:#fff5e0;border-bottom:1px solid #f0d49a;color:#7a5410;padding:9px 14px;font-size:12.5px;flex-shrink:0}
+.backup-banner .bb-text{flex:1;line-height:1.35}
+.backup-banner .bb-btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 13px;font-size:12.5px;font-weight:700;flex-shrink:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+.backup-banner .bb-x{background:none;border:none;color:#a58a55;font-size:18px;line-height:1;padding:0 2px;cursor:pointer;flex-shrink:0}
 
 /* ── Tabs ── */
 .tab-bar{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-bottom:2px solid var(--border);flex-shrink:0}
@@ -260,9 +270,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="header-info">
       <div class="brand-sub">MA DE SIAO SIN — LA</div>
       <div class="brand-name">庫存管理系統</div>
+      <div class="save-status idle" id="save-status">自動儲存：開啟</div>
     </div>
     <div class="total-badge" id="header-total" ontouchstart="startAdminHold()" ontouchend="cancelAdminHold()" onmousedown="startAdminHold()" onmouseup="cancelAdminHold()" onmouseleave="cancelAdminHold()" style="user-select:none">$ 0</div>
   </header>
+
+  <div class="backup-banner" id="backup-banner">
+    <span class="bb-text">📥 目前的數字尚未匯出備份，換手機或清快取可能會遺失。建議匯出一份存起來。</span>
+    <button class="bb-btn" onclick="exportConfig()">匯出備份</button>
+    <button class="bb-x" onclick="dismissBackupBanner()" title="本次先不提醒">×</button>
+  </div>
 
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="cart" onclick="switchTab('cart')" id="tab-cart"><span class="ti">🛒</span>攤車庫存</button>
@@ -544,7 +561,11 @@ function load(){
   (S.cartCats||[]).forEach(c=>{if(!S.cartItems[c])S.cartItems[c]=[];});
   (S.stockCats||[]).forEach(c=>{if(!S.stockItems[c])S.stockItems[c]=[];});
 }
-function save(){localStorage.setItem('mala_v5',JSON.stringify(S));}
+function save(){
+  try{localStorage.setItem('mala_v5',JSON.stringify(S));markSaved(true);}
+  catch(e){markSaved(false);}   // 私密視窗／容量滿：立刻讓使用者看到「存不進去」
+  refreshBackupState();
+}
 // 門市名稱納入 S，才會一起存檔＋匯出＋匯入（S 是 let，行內事件抓不到，需經此全域函式）
 function setStoreNameLive(v){S.storeName=v;}      // oninput：每鍵只更新記憶體，匯出隨時是最新值
 function setStoreName(v){S.storeName=v;save();}   // onchange：離開欄位才寫入 localStorage
@@ -848,7 +869,8 @@ function exportConfig(){
   const a=document.createElement('a');a.href=url;
   a.download=exportBaseName(now)+'.json';
   a.click();URL.revokeObjectURL(url);
-  showSnack('資料已匯出');
+  markExported();   // 記下此刻已備份的內容，收起提醒橫幅
+  showSnack('資料已匯出，已備份此刻內容');
 }
 // 套用匯入資料。成功回傳 true；任何失敗完整回滾（記憶體與畫面），localStorage 絕不寫入壞資料
 function importData(data){
@@ -871,6 +893,7 @@ function importData(data){
     // 先渲染（等同深度驗證），全部成功才寫入 localStorage
     renderCart();renderStock();renderPrice();renderPrint();renderThreshPanel();updateHeaderTotal();restoreStoreName();
     save();
+    markExported();   // 剛從備份檔還原，視為已備份此刻內容
     return true;
   }catch(err){
     S=prev;
@@ -1359,8 +1382,50 @@ function hideAdminPanel(){
   showSnack('已關閉後台設定');
 }
 
+// ── 防呆三合一：自動儲存指示燈 ＋ 未匯出備份提醒 ＋ 離開守門 ──
+let __lastSaveHM='', __bannerDismissed=false;
+function __hm(){const d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+// 便宜 hash：判斷「目前內容」跟「上次匯出的內容」是否相同
+function __sig(str){let h=5381;for(let i=0;i<str.length;i++){h=((h*33)^str.charCodeAt(i))>>>0;}return h.toString(36)+'.'+str.length;}
+function dataSig(){try{return __sig(JSON.stringify(S));}catch(e){return 'err';}}
+function getExportedSig(){try{return localStorage.getItem('mala_v5_exp')||'';}catch(e){return '';}}
+function markExported(){try{localStorage.setItem('mala_v5_exp',dataSig());}catch(e){}refreshBackupState();}
+// 是否有「值得備份」的資料：任一品項數量 > 0
+function hasInvData(){
+  try{
+    for(const map of [S.cartItems,S.stockItems]){
+      if(!map)continue;
+      for(const k in map){for(const it of (map[k]||[])){if((parseFloat(it.qty)||0)>0)return true;}}
+    }
+  }catch(e){}
+  return false;
+}
+function markSaved(ok){
+  const el=document.getElementById('save-status'); if(!el)return;
+  if(ok){__lastSaveHM=__hm();el.className='save-status ok';el.textContent='✓ 已自動儲存 '+__lastSaveHM;}
+  else{el.className='save-status bad';el.textContent='⚠ 無法儲存！請立即匯出備份';}
+}
+function refreshBackupState(){
+  const b=document.getElementById('backup-banner'); if(!b)return;
+  const dirty=hasInvData() && dataSig()!==getExportedSig() && !__bannerDismissed;
+  b.style.display = dirty ? 'flex' : 'none';
+}
+function dismissBackupBanner(){__bannerDismissed=true;refreshBackupState();}
+// 開機檢查這個瀏覽器到底能不能存（私密視窗／容量滿會當場現形）
+function probeStorage(){
+  try{localStorage.setItem('mala_probe','1');localStorage.removeItem('mala_probe');}
+  catch(e){markSaved(false);return;}
+  const el=document.getElementById('save-status');
+  if(el && !__lastSaveHM){el.className='save-status idle';el.textContent='自動儲存：開啟';}
+}
+// 離開守門：有未匯出的變更就攔一下（行動裝置盡力而為）
+window.addEventListener('beforeunload',function(e){
+  if(hasInvData() && dataSig()!==getExportedSig()){e.preventDefault();e.returnValue='';}
+});
+
 // ── 初始化 ──
 load();restoreStoreName();renderCart();renderStock();renderPrice();updateHeaderTotal();
+probeStorage();refreshBackupState();
 </script>
 </body>
 </html>
