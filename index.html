@@ -58,11 +58,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .cloud-cfg .cc-msg.ok{color:#2d6a8f}
 .cloud-cfg .cc-msg.bad{color:#c0392b;font-weight:700}
 .cloud-cfg .cc-hint{font-size:11px;color:var(--text3);line-height:1.4}
-/* ── 防呆：未匯出備份提醒橫幅 ── */
-.backup-banner{display:none;align-items:center;gap:10px;background:#fff5e0;border-bottom:1px solid #f0d49a;color:#7a5410;padding:9px 14px;font-size:12.5px;flex-shrink:0}
-.backup-banner .bb-text{flex:1;line-height:1.35}
-.backup-banner .bb-btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 13px;font-size:12.5px;font-weight:700;flex-shrink:0;cursor:pointer;font-family:inherit;white-space:nowrap}
-.backup-banner .bb-x{background:none;border:none;color:#a58a55;font-size:18px;line-height:1;padding:0 2px;cursor:pointer;flex-shrink:0}
 
 /* ── Tabs ── */
 .tab-bar{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-bottom:2px solid var(--border);flex-shrink:0}
@@ -293,12 +288,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     </div>
     <div class="total-badge" id="header-total" ontouchstart="startAdminHold()" ontouchend="cancelAdminHold()" onmousedown="startAdminHold()" onmouseup="cancelAdminHold()" onmouseleave="cancelAdminHold()" style="user-select:none">$ 0</div>
   </header>
-
-  <div class="backup-banner" id="backup-banner">
-    <span class="bb-text">📥 目前的數字尚未匯出備份，換手機或清快取可能會遺失。建議匯出一份存起來。</span>
-    <button class="bb-btn" onclick="exportConfig()">匯出備份</button>
-    <button class="bb-x" onclick="dismissBackupBanner()" title="本次先不提醒">×</button>
-  </div>
 
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="cart" onclick="switchTab('cart')" id="tab-cart"><span class="ti">🛒</span>攤車庫存</button>
@@ -610,7 +599,6 @@ function load(){
 function save(){
   try{localStorage.setItem('mala_v5',JSON.stringify(S));markSaved(true);}
   catch(e){markSaved(false);}   // 私密視窗／容量滿：立刻讓使用者看到「存不進去」
-  refreshBackupState();
   if(window.Sync)Sync.schedulePush();   // 本機存完 → 排程一次雲端批次同步（去抖動）
 }
 // 門市名稱納入 S，才會一起存檔＋匯出＋匯入（S 是 let，行內事件抓不到，需經此全域函式）
@@ -916,8 +904,7 @@ function exportConfig(){
   const a=document.createElement('a');a.href=url;
   a.download=exportBaseName(now)+'.json';
   a.click();URL.revokeObjectURL(url);
-  markExported();   // 記下此刻已備份的內容，收起提醒橫幅
-  showSnack('資料已匯出，已備份此刻內容');
+  showSnack('資料已匯出');
 }
 // 套用匯入資料。成功回傳 true；任何失敗完整回滾（記憶體與畫面），localStorage 絕不寫入壞資料
 function importData(data){
@@ -940,7 +927,6 @@ function importData(data){
     // 先渲染（等同深度驗證），全部成功才寫入 localStorage
     renderCart();renderStock();renderPrice();renderPrint();renderThreshPanel();updateHeaderTotal();restoreStoreName();
     save();
-    markExported();   // 剛從備份檔還原，視為已備份此刻內容
     return true;
   }catch(err){
     S=prev;
@@ -1433,15 +1419,12 @@ function hideAdminPanel(){
   showSnack('已關閉後台設定');
 }
 
-// ── 防呆三合一：自動儲存指示燈 ＋ 未匯出備份提醒 ＋ 離開守門 ──
-let __lastSaveHM='', __bannerDismissed=false;
+// ── 自動儲存指示燈（存不進去當場現形）；dataSig/hasInvData 亦供雲端同步層使用 ──
+let __lastSaveHM='';
 function __hm(){const d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
-// 便宜 hash：判斷「目前內容」跟「上次匯出的內容」是否相同
 function __sig(str){let h=5381;for(let i=0;i<str.length;i++){h=((h*33)^str.charCodeAt(i))>>>0;}return h.toString(36)+'.'+str.length;}
 function dataSig(){try{return __sig(JSON.stringify(S));}catch(e){return 'err';}}
-function getExportedSig(){try{return localStorage.getItem('mala_v5_exp')||'';}catch(e){return '';}}
-function markExported(){try{localStorage.setItem('mala_v5_exp',dataSig());}catch(e){}refreshBackupState();}
-// 是否有「值得備份」的資料：任一品項數量 > 0
+// 是否有實際盤點數字：任一品項數量 > 0（雲端對帳的 haveLocal 判斷也用它）
 function hasInvData(){
   try{
     for(const map of [S.cartItems,S.stockItems]){
@@ -1454,14 +1437,8 @@ function hasInvData(){
 function markSaved(ok){
   const el=document.getElementById('save-status'); if(!el)return;
   if(ok){__lastSaveHM=__hm();el.className='save-status ok';el.textContent='✓ 已自動儲存 '+__lastSaveHM;}
-  else{el.className='save-status bad';el.textContent='⚠ 無法儲存！請立即匯出備份';}
+  else{el.className='save-status bad';el.textContent='⚠ 無法儲存！請匯出備份';}
 }
-function refreshBackupState(){
-  const b=document.getElementById('backup-banner'); if(!b)return;
-  const dirty=hasInvData() && dataSig()!==getExportedSig() && !__bannerDismissed;
-  b.style.display = dirty ? 'flex' : 'none';
-}
-function dismissBackupBanner(){__bannerDismissed=true;refreshBackupState();}
 // 開機檢查這個瀏覽器到底能不能存（私密視窗／容量滿會當場現形）
 function probeStorage(){
   try{localStorage.setItem('mala_probe','1');localStorage.removeItem('mala_probe');}
@@ -1469,10 +1446,6 @@ function probeStorage(){
   const el=document.getElementById('save-status');
   if(el && !__lastSaveHM){el.className='save-status idle';el.textContent='自動儲存：開啟';}
 }
-// 離開守門：有未匯出的變更就攔一下（行動裝置盡力而為）
-window.addEventListener('beforeunload',function(e){
-  if(hasInvData() && dataSig()!==getExportedSig()){e.preventDefault();e.returnValue='';}
-});
 
 // ══ 雲端同步層（本機即時＋雲端批次；契約對齊 backend/Code.gs 與 mock）══
 var Sync = (function(){
@@ -1500,7 +1473,6 @@ var Sync = (function(){
     try{JSON.parse(payload);}catch(e){return false;}
     try{localStorage.setItem('mala_v5',payload);}catch(e){}
     load();restoreStoreName();renderCart();renderStock();renderPrice();updateHeaderTotal();
-    if(typeof refreshBackupState==='function')refreshBackupState();
     return true;
   }
 
@@ -1590,7 +1562,7 @@ function cloudSyncNow(){
 
 // ── 初始化 ──
 load();restoreStoreName();renderCart();renderStock();renderPrice();updateHeaderTotal();
-probeStorage();refreshBackupState();
+probeStorage();
 Sync.boot();
 </script>
 </body>
